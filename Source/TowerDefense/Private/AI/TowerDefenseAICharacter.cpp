@@ -37,6 +37,11 @@ UAbilitySystemComponent* ATowerDefenseAICharacter::GetAbilitySystemComponent() c
     return AbilitySystemComponent;
 }
 
+bool ATowerDefenseAICharacter::IsDead() const
+{
+    return bIsDead;
+}
+
 void ATowerDefenseAICharacter::OnDeath()
 {
     GetMesh()->SetCollisionProfileName(Collision::NoCollisionProfile);

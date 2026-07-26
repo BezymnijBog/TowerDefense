@@ -33,6 +33,8 @@ public:
 
     FOnDeathDelegate OnDeathDelegate;
 
+    bool IsDead() const;
+
 protected:
     virtual void OnDeath();
 
@@ -55,6 +57,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
     TSubclassOf<UGameplayAbility> DealDamageAbilityClass;
 
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
+    FGameplayAbilitySpecHandle DealDamageAbility;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
     FGenericTeamId TeamId;
 
@@ -63,9 +68,6 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
     TObjectPtr<UBehaviorTree> BehaviorTree;
-
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
-    FGameplayAbilitySpecHandle DealDamageAbility;
 
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter")
     TWeakObjectPtr<ATowerDefenseAIController> AICharacterController;
