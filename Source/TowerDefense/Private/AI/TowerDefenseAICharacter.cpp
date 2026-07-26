@@ -1,20 +1,18 @@
 // Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
-#include "Enemy/EnemyCharacter.h"
+#include "AI/TowerDefenseAICharacter.h"
 
-#include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Attributes/EnemyAttributeSet.h"
+#include "Attributes/AICharacterAttributeSet.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Enemy/EnemyController.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "TowerDefense.h"
+#include "Utils/BaseUtils.h"
 #include "Widgets/ProgressBarWidget.h"
 
-AEnemyCharacter::AEnemyCharacter()
+ATowerDefenseAICharacter::ATowerDefenseAICharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
@@ -24,35 +22,22 @@ AEnemyCharacter::AEnemyCharacter()
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
 }
 
-FGenericTeamId AEnemyCharacter::GetGenericTeamId() const
+FGenericTeamId ATowerDefenseAICharacter::GetGenericTeamId() const
 {
     return TeamId;
 }
 
-void AEnemyCharacter::SetGenericTeamId(const FGenericTeamId& TeamID)
+void ATowerDefenseAICharacter::SetGenericTeamId(const FGenericTeamId& TeamID)
 {
     TeamId = TeamID;
 }
 
-UAbilitySystemComponent* AEnemyCharacter::GetAbilitySystemComponent() const
+UAbilitySystemComponent* ATowerDefenseAICharacter::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
 }
 
-void AEnemyCharacter::Tick(float DeltaSeconds)
-{
-    Super::Tick(DeltaSeconds);
-    UKismetSystemLibrary::PrintString(
-        this, FString::Printf(TEXT("%s HP is %f"), *GetName(), AttributeSet->GetHealth()), true, false, FColor::Red, DeltaSeconds, *GetName());
-}
-
-void AEnemyCharacter::PossessedBy(AController* NewController)
-{
-    Super::PossessedBy(NewController);
-    EnemyController = NewController && NewController->IsA<AEnemyController>() ? StaticCast<AEnemyController*>(NewController) : nullptr;
-}
-
-void AEnemyCharacter::OnDeath()
+void ATowerDefenseAICharacter::OnDeath()
 {
     GetMesh()->SetCollisionProfileName(Collision::NoCollisionProfile);
     GetCapsuleComponent()->SetCollisionProfileName(Collision::NoCollisionProfile);
@@ -60,16 +45,10 @@ void AEnemyCharacter::OnDeath()
     GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &ThisClass::OnDeathTimerElapsed, DeathDestroyInterval);
     AbilitySystemComponent->CancelAbilityHandle(DealDamageAbility);
     HealthWidget->SetVisibility(ESlateVisibility::Collapsed);
-
     OnDeathDelegate.Broadcast(this);
-
-    for (auto It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-    {
-        AbilitySystem::SendGameplayEventToTarget(this, It->Get(), Action_Money_Receive);
-    }
 }
 
-void AEnemyCharacter::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+void ATowerDefenseAICharacter::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
 {
     if (HealthWidget.IsValid())
     {
@@ -82,12 +61,12 @@ void AEnemyCharacter::OnHealthChanged(const FOnAttributeChangeData& OnAttributeC
     }
 }
 
-void AEnemyCharacter::BeginPlay()
+void ATowerDefenseAICharacter::BeginPlay()
 {
     Super::BeginPlay();
 
-    AttributeSet = AbilitySystemComponent->GetSet<UEnemyAttributeSet>();
-    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UEnemyAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+    AttributeSet = AbilitySystemComponent->GetSet<UAICharacterAttributeSet>();
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
 
     DealDamageAbility = AbilitySystemComponent->GiveAbility(DealDamageAbilityClass);
     if (!ensure(AbilitySystemComponent->TryActivateAbility(DealDamageAbility)))
@@ -102,7 +81,7 @@ void AEnemyCharacter::BeginPlay()
     }
 }
 
-void AEnemyCharacter::OnDeathTimerElapsed()
+void ATowerDefenseAICharacter::OnDeathTimerElapsed()
 {
     GetWorld()->GetTimerManager().ClearTimer(DeathTimer);
     Destroy();

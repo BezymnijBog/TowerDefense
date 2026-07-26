@@ -11,7 +11,7 @@
 #include "Utils/BaseUtils.h"
 #include "TowerDefensePlayerController.generated.h"
 
-class ADefenderBase;
+//class ADefenderBase;
 class UInputMappingContext;
 class UInputAction;
 class UNiagaraSystem;
@@ -34,23 +34,6 @@ protected:
     virtual void SetupInputComponent() override;
     virtual void BeginPlay() override;
 
-#pragma region Input
-    UPROPERTY(EditAnywhere, Category = Input)
-    float ShortPressThreshold = 0.3f;
-
-    UPROPERTY(EditAnywhere, Category = Input)
-    TObjectPtr<UNiagaraSystem> FXCursor;
-
-    UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputMappingContext> DefaultMappingContext;
-
-    UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> SetLocationClickAction;
-
-    UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> SetLocationTouchAction;
-#pragma endregion
-
 #pragma region GameplayAbilitySystem
     UPROPERTY(VisibleDefaultsOnly, Category = "Abilities")
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -66,8 +49,14 @@ protected:
 #pragma endregion
 
 #pragma region Building
-    UPROPERTY(VisibleAnywhere, Category = Building)
-    TObjectPtr<ADefenderBase> PreviewActor = nullptr;
+    UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+    UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UInputAction> BuildClickAction;
+
+    //UPROPERTY(VisibleAnywhere, Category = Building)
+    //TObjectPtr<ADefenderBase> PreviewActor = nullptr;
 
     UPROPERTY(EditDefaultsOnly, Category = Building)
     TObjectPtr<UMaterialInterface> BuildAllowedMaterial;
@@ -82,15 +71,8 @@ protected:
     bool bIsBuildingMode = false;
 #pragma endregion
 
-#pragma region InputHandlers
-    void OnInputStarted();
-    void OnSetDestinationTriggered();
-    void OnSetDestinationReleased();
-    void OnTouchTriggered();
-    void OnTouchReleased();
-#pragma endregion
-
 private:
+    void BuildPreviewActor();
     void InitializeAbilitySystem();
     void OnMoneyChanged(const FOnAttributeChangeData& OnAttributeChangeData) const;
     void UpdateBuildingPreview() const;

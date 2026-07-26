@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "TowerAttributeSet.generated.h"
+#include "BuildingAttributeSet.generated.h"
 
 UCLASS()
-class TOWERDEFENSE_API UTowerAttributeSet : public UAttributeSet
+class TOWERDEFENSE_API UBuildingAttributeSet : public UAttributeSet
 {
     GENERATED_BODY()
 
 public:
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UTowerAttributeSet, Health)
+    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBuildingAttributeSet, Health)
     GAMEPLAYATTRIBUTE_VALUE_GETTER(Health)
 
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UTowerAttributeSet, MaxHealth)
+    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBuildingAttributeSet, MaxHealth)
     GAMEPLAYATTRIBUTE_VALUE_GETTER(MaxHealth)
 
 protected:

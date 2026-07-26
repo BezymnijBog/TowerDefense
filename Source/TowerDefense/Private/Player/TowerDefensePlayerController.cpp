@@ -5,16 +5,12 @@
 #include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemComponent.h"
 #include "Actors/PlayerHUD.h"
-#include "Actors/DefenderBase.h"
 #include "Attributes/PlayerAttributeSet.h"
-#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Pawn.h"
-#include "Kismet/GameplayStatics.h"
-#include "NiagaraFunctionLibrary.h"
 #include "TowerDefense.h"
 #include "Widgets/PlayerHudWidget.h"
 
@@ -44,20 +40,20 @@ ATowerDefensePlayerController::ATowerDefensePlayerController()
 
 void ATowerDefensePlayerController::SetBuildingMode(FBuildingInfo InBuildingInfo)
 {
-    BuildingInfo = MoveTemp(InBuildingInfo);
-    bIsBuildingMode = IsValid(BuildingInfo.BuildingClass);
-    if (bIsBuildingMode)
-    {
-        FHitResult HitResult;
-        GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-        const FTransform SpawnTransform(FRotator::ZeroRotator, HitResult.Location);
-        PreviewActor = GetWorld()->SpawnActor<ADefenderBase>(BuildingInfo.BuildingClass, SpawnTransform);
-        PreviewActor->UpdateIsBuildingAllowed();
-    }
-    else if (IsValid(PreviewActor))
-    {
-        PreviewActor->Destroy();
-    }
+    //BuildingInfo = MoveTemp(InBuildingInfo);
+    //bIsBuildingMode = IsValid(BuildingInfo.BuildingClass);
+    //if (bIsBuildingMode)
+    //{
+    //    FHitResult HitResult;
+    //    GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
+    //    const FTransform SpawnTransform(FRotator::ZeroRotator, HitResult.Location);
+    //    PreviewActor = GetWorld()->SpawnActor<ADefenderBase>(BuildingInfo.BuildingClass, SpawnTransform);
+    //    PreviewActor->UpdateIsBuildingAllowed();
+    //}
+    //else if (IsValid(PreviewActor))
+    //{
+    //    PreviewActor->Destroy();
+    //}
 }
 
 UAbilitySystemComponent* ATowerDefensePlayerController::GetAbilitySystemComponent() const
@@ -93,69 +89,24 @@ void ATowerDefensePlayerController::SetupInputComponent()
 
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
     {
-        //EnhancedInputComponent->BindAction(SetLocationClickAction, ETriggerEvent::Started, this, &ThisClass::OnInputStarted);
-        EnhancedInputComponent->BindAction(SetLocationClickAction, ETriggerEvent::Triggered, this, &ThisClass::OnSetDestinationTriggered);
-        //EnhancedInputComponent->BindAction(SetLocationClickAction, ETriggerEvent::Completed, this, &ThisClass::OnSetDestinationReleased);
-        //EnhancedInputComponent->BindAction(SetLocationClickAction, ETriggerEvent::Canceled, this, &ThisClass::OnSetDestinationReleased);
-
-        EnhancedInputComponent->BindAction(SetLocationTouchAction, ETriggerEvent::Started, this, &ThisClass::OnInputStarted);
-        EnhancedInputComponent->BindAction(SetLocationTouchAction, ETriggerEvent::Triggered, this, &ThisClass::OnTouchTriggered);
-        EnhancedInputComponent->BindAction(SetLocationTouchAction, ETriggerEvent::Completed, this, &ThisClass::OnTouchReleased);
-        EnhancedInputComponent->BindAction(SetLocationTouchAction, ETriggerEvent::Canceled, this, &ThisClass::OnTouchReleased);
+        EnhancedInputComponent->BindAction(BuildClickAction, ETriggerEvent::Triggered, this, &ThisClass::BuildPreviewActor);
     }
     else
     {
-        UE_LOG(
-            LogTowerDefense,
-            Error,
-            TEXT(
-                "'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."),
-            *GetNameSafe(this));
+        UE_LOG(LogTowerDefense, Error, TEXT("'%s' Failed to find an Enhanced Input Component!"), *GetNameSafe(this));
     }
 }
 
-void ATowerDefensePlayerController::OnInputStarted()
+void ATowerDefensePlayerController::BuildPreviewActor()
 {
-    if (!bIsBuildingMode)
-    {
-        StopMovement();
-    }
-}
-
-void ATowerDefensePlayerController::OnSetDestinationTriggered()
-{
-    if (!IsValid(PreviewActor) || !PreviewActor->IsAllowedToBuild())
-    {
-        return;
-    }
-    AbilitySystem::SendGameplayEventToInstigator(this, this, Action_Money_Spend);
-    PreviewActor->FinishBuilding();
-    PreviewActor = nullptr;
-    SetBuildingMode({});
-}
-
-void ATowerDefensePlayerController::OnSetDestinationReleased()
-{
-    if (FollowTime <= ShortPressThreshold)
-    {
-        UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-            this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector::OneVector, true, true, ENCPoolMethod::None, true);
-    }
-
-    FollowTime = 0.f;
-}
-
-void ATowerDefensePlayerController::OnTouchTriggered()
-{
-    bIsTouch = true;
-    OnSetDestinationTriggered();
-}
-
-void ATowerDefensePlayerController::OnTouchReleased()
-{
-    bIsTouch = false;
-    OnSetDestinationReleased();
+    //if (!IsValid(PreviewActor) || !PreviewActor->IsAllowedToBuild())
+    //{
+    //    return;
+    //}
+    //AbilitySystem::SendGameplayEventToInstigator(this, this, Action_Money_Spend);
+    //PreviewActor->FinishBuilding();
+    //PreviewActor = nullptr;
+    //SetBuildingMode({});
 }
 
 void ATowerDefensePlayerController::InitializeAbilitySystem()
@@ -188,23 +139,23 @@ void ATowerDefensePlayerController::OnMoneyChanged(const FOnAttributeChangeData&
 
 void ATowerDefensePlayerController::UpdateBuildingPreview() const
 {
-    if (!bIsBuildingMode)
-    {
-        return;
-    }
+    //if (!bIsBuildingMode)
+    //{
+    //    return;
+    //}
 
-    static constexpr double TraceLength = 100000.;
-    static const FVector GridSize = FVector::OneVector * 100.;
-    static const FVector GridOffset = FVector::ForwardVector * 50. + FVector::RightVector * 50. + FVector::UpVector * 0.;
+    //static constexpr double TraceLength = 100000.;
+    //static const FVector GridSize = FVector::OneVector * 100.;
+    //static const FVector GridOffset = FVector::ForwardVector * 50. + FVector::RightVector * 50. + FVector::UpVector * 0.;
 
-    FVector TraceStart;
-    FVector TraceDir;
-    DeprojectMousePositionToWorld(TraceStart, TraceDir);
-    FCollisionQueryParams Query(TEXT("Building trace"), false, GetPawn());
-    Query.AddIgnoredActor(PreviewActor);
+    //FVector TraceStart;
+    //FVector TraceDir;
+    //DeprojectMousePositionToWorld(TraceStart, TraceDir);
+    //FCollisionQueryParams Query(TEXT("Building trace"), false, GetPawn());
+    //Query.AddIgnoredActor(PreviewActor);
 
-    if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceStart + TraceDir * TraceLength, ECC_Visibility, Query))
-    {
-        PreviewActor->SetActorLocation(SnappedToGrid(HitResult.Location, GridSize, GridOffset));
-    }
+    //if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceStart + TraceDir * TraceLength, ECC_Visibility, Query))
+    //{
+    //    PreviewActor->SetActorLocation(SnappedToGrid(HitResult.Location, GridSize, GridOffset));
+    //}
 }

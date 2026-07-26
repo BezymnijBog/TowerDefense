@@ -7,8 +7,6 @@
 #include "GenericTeamAgentInterface.h"
 #include "BaseUtils.generated.h"
 
-class ADefenderBase;
-
 namespace Teams
 {
 UENUM(BlueprintType)
@@ -35,8 +33,8 @@ struct FBuildingInfo
     UPROPERTY(EditAnywhere)
     uint32 BuildCost = 0;
 
-    UPROPERTY(EditAnywhere)
-    TSubclassOf<ADefenderBase> BuildingClass;
+    //UPROPERTY(EditAnywhere)
+    //TSubclassOf<ADefenderBase> BuildingClass;
 };
 
 namespace AbilitySystem
