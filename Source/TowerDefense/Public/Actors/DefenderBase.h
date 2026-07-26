@@ -8,7 +8,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameFramework/Actor.h"
 #include "Utils/BaseUtils.h"
-#include "Turret.generated.h"
+#include "DefenderBase.generated.h"
 
 class AEnemyCharacter;
 class AProjectile;
@@ -20,12 +20,12 @@ class USphereComponent;
 class UTurretAttributeSet;
 
 UCLASS()
-class TOWERDEFENSE_API ATurret : public AActor, public IAbilitySystemInterface, public IGenericTeamAgentInterface
+class TOWERDEFENSE_API ADefenderBase : public AActor, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
     GENERATED_BODY()
 
 public:
-    ATurret();
+    ADefenderBase();
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 

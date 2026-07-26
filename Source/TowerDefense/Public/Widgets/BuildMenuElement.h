@@ -9,7 +9,7 @@
 #include "BuildMenuElement.generated.h"
 
 class ATowerDefensePlayerController;
-class ATurret;
+class ADefenderBase;
 class UButton;
 
 UCLASS()

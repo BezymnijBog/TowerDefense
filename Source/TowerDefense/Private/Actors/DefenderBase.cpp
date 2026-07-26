@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Actors/Turret.h"
+#include "Actors/DefenderBase.h"
 
 #include "AbilitySystemComponent.h"
 #include "TowerDefense.h"
@@ -13,7 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
-ATurret::ATurret()
+ADefenderBase::ADefenderBase()
 {
     PrimaryActorTick.bCanEverTick = true;
 
@@ -36,12 +36,12 @@ ATurret::ATurret()
     TeamId.SetAttitudeSolver(Teams::AttitudeSolveFunction);
 }
 
-UAbilitySystemComponent* ATurret::GetAbilitySystemComponent() const
+UAbilitySystemComponent* ADefenderBase::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
 }
 
-void ATurret::Tick(float DeltaTime)
+void ADefenderBase::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
@@ -52,22 +52,22 @@ void ATurret::Tick(float DeltaTime)
     }
 }
 
-FGenericTeamId ATurret::GetGenericTeamId() const
+FGenericTeamId ADefenderBase::GetGenericTeamId() const
 {
     return TeamId;
 }
 
-void ATurret::SetGenericTeamId(const FGenericTeamId& TeamID)
+void ADefenderBase::SetGenericTeamId(const FGenericTeamId& TeamID)
 {
     TeamId = TeamID;
 }
 
-bool ATurret::IsAllowedToBuild() const
+bool ADefenderBase::IsAllowedToBuild() const
 {
     return bIsAllowedToBuild;
 }
 
-void ATurret::UpdateIsBuildingAllowed()
+void ADefenderBase::UpdateIsBuildingAllowed()
 {
     static constexpr float CollisionRadius = 40.f;
     const FCollisionShape Collision = FCollisionShape::MakeSphere(CollisionRadius);
@@ -79,19 +79,19 @@ void ATurret::UpdateIsBuildingAllowed()
     SetIsBuildingAllowed(!GetWorld()->SweepSingleByChannel(Hit, SweepStart, SweepEnd, FQuat::Identity, ECC_Visibility, Collision, Query) && !Hit.bBlockingHit);
 }
 
-void ATurret::FinishBuilding() const
+void ADefenderBase::FinishBuilding() const
 {
     PreviewMesh->SetVisibility(false);
     TurretMesh->SetVisibility(true);
     ActiveVolume->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-    ActiveVolume->OnComponentBeginOverlap.AddDynamic(this, &ATurret::OnActiveVolumeBeginOverlap);
-    ActiveVolume->OnComponentEndOverlap.AddDynamic(this, &ATurret::OnActiveVolumeEndOverlap);
+    ActiveVolume->OnComponentBeginOverlap.AddDynamic(this, &ADefenderBase::OnActiveVolumeBeginOverlap);
+    ActiveVolume->OnComponentEndOverlap.AddDynamic(this, &ADefenderBase::OnActiveVolumeEndOverlap);
 
     TurretRoot->CanBuildChanged.Unbind();
 }
 
-void ATurret::MakeShot()
+void ADefenderBase::MakeShot()
 {
     AProjectile* const Projectile = GetOrCreateProjectile();
     const FTransform Transform(UKismetMathLibrary::MakeRotFromXZ((CurrentTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal(), FVector::UpVector),
@@ -100,7 +100,7 @@ void ATurret::MakeShot()
     Projectile->OnHitDelegate.BindUObject(this, &ThisClass::OnProjectileHit);
 }
 
-void ATurret::BeginPlay()
+void ADefenderBase::BeginPlay()
 {
     Super::BeginPlay();
 
@@ -114,15 +114,15 @@ void ATurret::BeginPlay()
     ActiveVolume->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void ATurret::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ADefenderBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    ActiveVolume->OnComponentBeginOverlap.RemoveDynamic(this, &ATurret::OnActiveVolumeBeginOverlap);
-    ActiveVolume->OnComponentEndOverlap.RemoveDynamic(this, &ATurret::OnActiveVolumeEndOverlap);
+    ActiveVolume->OnComponentBeginOverlap.RemoveDynamic(this, &ADefenderBase::OnActiveVolumeBeginOverlap);
+    ActiveVolume->OnComponentEndOverlap.RemoveDynamic(this, &ADefenderBase::OnActiveVolumeEndOverlap);
 
     Super::EndPlay(EndPlayReason);
 }
 
-void ATurret::OnActiveVolumeBeginOverlap(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int32, bool, const FHitResult&)
+void ADefenderBase::OnActiveVolumeBeginOverlap(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int32, bool, const FHitResult&)
 {
     if (!IsValid(OtherActor) || !OtherActor->Implements<UGenericTeamAgentInterface>())
     {
@@ -137,7 +137,7 @@ void ATurret::OnActiveVolumeBeginOverlap(UPrimitiveComponent*, AActor* OtherActo
     bIsIdle = !Targets.IsEmpty();
 }
 
-void ATurret::OnActiveVolumeEndOverlap(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int32)
+void ADefenderBase::OnActiveVolumeEndOverlap(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int32)
 {
     if (!IsValid(OtherActor) || !OtherActor->Implements<UGenericTeamAgentInterface>())
     {
@@ -149,7 +149,7 @@ void ATurret::OnActiveVolumeEndOverlap(UPrimitiveComponent*, AActor* OtherActor,
     bIsIdle = Targets.IsEmpty();
 }
 
-void ATurret::AddTarget(AEnemyCharacter* Enemy)
+void ADefenderBase::AddTarget(AEnemyCharacter* Enemy)
 {
     if (!IsValid(Enemy))
     {
@@ -163,7 +163,7 @@ void ATurret::AddTarget(AEnemyCharacter* Enemy)
     }
 }
 
-void ATurret::OnIsBuildingAllowedChanged()
+void ADefenderBase::OnIsBuildingAllowedChanged()
 {
     UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(PreviewMaterial, this);
     const FColor& HighlightColor = bIsAllowedToBuild ? AllowBuildColor : ForbiddenBuildColor;
@@ -171,13 +171,13 @@ void ATurret::OnIsBuildingAllowedChanged()
     PreviewMesh->SetMaterial(0, MaterialInstance);
 }
 
-void ATurret::OnProjectileHit(AProjectile* Projectile)
+void ADefenderBase::OnProjectileHit(AProjectile* Projectile)
 {
     Projectile->Deactivate();
     Projectiles.Emplace(Projectile);
 }
 
-void ATurret::RemoveTarget(AEnemyCharacter* Enemy)
+void ADefenderBase::RemoveTarget(AEnemyCharacter* Enemy)
 {
     if (!IsValid(Enemy))
     {
@@ -192,7 +192,7 @@ void ATurret::RemoveTarget(AEnemyCharacter* Enemy)
     }
 }
 
-void ATurret::SetIsBuildingAllowed(bool bValue)
+void ADefenderBase::SetIsBuildingAllowed(bool bValue)
 {
     if (bIsAllowedToBuild != bValue)
     {
@@ -201,14 +201,14 @@ void ATurret::SetIsBuildingAllowed(bool bValue)
     }
 }
 
-void ATurret::UpdateTargets()
+void ADefenderBase::UpdateTargets()
 {
     check(TargetDelegates.Num() == Targets.Num());
     bIsIdle = Targets.IsEmpty();
     CurrentTarget = bIsIdle ? nullptr : Targets[0];
 }
 
-AProjectile* ATurret::GetOrCreateProjectile()
+AProjectile* ADefenderBase::GetOrCreateProjectile()
 {
     return Projectiles.IsEmpty() ? GetWorld()->SpawnActor<AProjectile>(ProjectileClass) : Projectiles.Pop();
 }

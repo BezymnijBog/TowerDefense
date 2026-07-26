@@ -11,7 +11,7 @@
 #include "Utils/BaseUtils.h"
 #include "TowerDefensePlayerController.generated.h"
 
-class ATurret;
+class ADefenderBase;
 class UInputMappingContext;
 class UInputAction;
 class UNiagaraSystem;
@@ -67,7 +67,7 @@ protected:
 
 #pragma region Building
     UPROPERTY(VisibleAnywhere, Category = Building)
-    TObjectPtr<ATurret> PreviewActor = nullptr;
+    TObjectPtr<ADefenderBase> PreviewActor = nullptr;
 
     UPROPERTY(EditDefaultsOnly, Category = Building)
     TObjectPtr<UMaterialInterface> BuildAllowedMaterial;

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actors/Turret.h"
+#include "Actors/DefenderBase.h"
 #include "AreaTurret.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class TOWERDEFENSE_API AAreaTurret : public ATurret
+class TOWERDEFENSE_API AAreaTurret : public ADefenderBase
 {
 	GENERATED_BODY()
 	

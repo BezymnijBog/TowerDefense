@@ -5,7 +5,7 @@
 #include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemComponent.h"
 #include "Actors/PlayerHUD.h"
-#include "Actors/Turret.h"
+#include "Actors/DefenderBase.h"
 #include "Attributes/PlayerAttributeSet.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Engine/LocalPlayer.h"
@@ -51,7 +51,7 @@ void ATowerDefensePlayerController::SetBuildingMode(FBuildingInfo InBuildingInfo
         FHitResult HitResult;
         GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
         const FTransform SpawnTransform(FRotator::ZeroRotator, HitResult.Location);
-        PreviewActor = GetWorld()->SpawnActor<ATurret>(BuildingInfo.BuildingClass, SpawnTransform);
+        PreviewActor = GetWorld()->SpawnActor<ADefenderBase>(BuildingInfo.BuildingClass, SpawnTransform);
         PreviewActor->UpdateIsBuildingAllowed();
     }
     else if (IsValid(PreviewActor))
@@ -75,7 +75,10 @@ void ATowerDefensePlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    check(IsValid(BuildAllowedMaterial) && IsValid(BuildRejectedMaterial));
+    if (!IsValid(BuildAllowedMaterial) || !IsValid(BuildRejectedMaterial))
+    {
+        UE_LOG(LogTowerDefense, Error, TEXT("Invalid materials for building"));
+    }
     InitializeAbilitySystem();
 }
 

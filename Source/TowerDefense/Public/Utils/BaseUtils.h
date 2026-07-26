@@ -7,7 +7,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "BaseUtils.generated.h"
 
-class ATurret;
+class ADefenderBase;
 
 namespace Teams
 {
@@ -36,7 +36,7 @@ struct FBuildingInfo
     uint32 BuildCost = 0;
 
     UPROPERTY(EditAnywhere)
-    TSubclassOf<ATurret> BuildingClass;
+    TSubclassOf<ADefenderBase> BuildingClass;
 };
 
 namespace AbilitySystem
