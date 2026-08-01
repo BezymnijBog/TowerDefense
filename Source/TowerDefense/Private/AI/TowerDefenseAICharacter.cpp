@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Attributes/AICharacterAttributeSet.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WayComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TowerDefense.h"
@@ -19,6 +20,7 @@ ATowerDefenseAICharacter::ATowerDefenseAICharacter()
     WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget"));
     WidgetComponent->SetupAttachment(GetMesh());
 
+    WayComponent = CreateDefaultSubobject<UWayComponent>(TEXT("WayComponent"));
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
 }
 
@@ -35,6 +37,16 @@ void ATowerDefenseAICharacter::SetGenericTeamId(const FGenericTeamId& TeamID)
 UAbilitySystemComponent* ATowerDefenseAICharacter::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
+}
+
+UWayComponent* ATowerDefenseAICharacter::GetWayComponent() const
+{
+    return WayComponent;
+}
+
+float ATowerDefenseAICharacter::GetAttackRange() const
+{
+    return AttackRange;
 }
 
 bool ATowerDefenseAICharacter::IsDead() const
@@ -74,10 +86,10 @@ void ATowerDefenseAICharacter::BeginPlay()
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
 
     DealDamageAbility = AbilitySystemComponent->GiveAbility(DealDamageAbilityClass);
-    if (!ensure(AbilitySystemComponent->TryActivateAbility(DealDamageAbility)))
-    {
-        UE_LOG(LogTowerDefense, Warning, TEXT("Failed to activate ability for %s"), *GetName());
-    }
+    //if (!ensure(AbilitySystemComponent->TryActivateAbility(DealDamageAbility)))
+    //{
+    //    UE_LOG(LogTowerDefense, Warning, TEXT("Failed to activate ability for %s"), *GetName());
+    //}
 
     if (HealthWidget = Cast<UProgressBarWidget>(WidgetComponent->GetWidget()); HealthWidget.IsValid())
     {

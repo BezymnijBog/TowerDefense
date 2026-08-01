@@ -8,18 +8,20 @@
 #include "GameplayAbilitySpecHandle.h"
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "Interfaces/AttackerInterface.h"
 #include "TowerDefenseAICharacter.generated.h"
 
 class ATowerDefenseAIController;
 class UAICharacterAttributeSet;
 class UBehaviorTree;
 class UProgressBarWidget;
+class UWayComponent;
 class UWidgetComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeathDelegate, class ATowerDefenseAICharacter*);
 
 UCLASS()
-class TOWERDEFENSE_API ATowerDefenseAICharacter : public ACharacter, public IGenericTeamAgentInterface, public IAbilitySystemInterface
+class TOWERDEFENSE_API ATowerDefenseAICharacter : public ACharacter, public IGenericTeamAgentInterface, public IAbilitySystemInterface, public IAttackerInterface
 {
     GENERATED_BODY()
 
@@ -30,6 +32,9 @@ public:
     virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+    UWayComponent* GetWayComponent() const;
+
+    virtual float GetAttackRange() const override;
 
     FOnDeathDelegate OnDeathDelegate;
 
@@ -51,6 +56,9 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<UWayComponent> WayComponent;
+
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
     TObjectPtr<const UAICharacterAttributeSet> AttributeSet;
 
@@ -67,7 +75,7 @@ protected:
     float DeathDestroyInterval = 5.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
-    TObjectPtr<UBehaviorTree> BehaviorTree;
+    float AttackRange = 0.f;
 
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter")
     TWeakObjectPtr<ATowerDefenseAIController> AICharacterController;

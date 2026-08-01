@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
 #pragma once
 

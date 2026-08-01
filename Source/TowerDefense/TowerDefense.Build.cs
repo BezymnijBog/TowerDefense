@@ -10,6 +10,7 @@ public class TowerDefense : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
+			"AIModule",
 			"Core",
 			"CoreUObject",
 			"GameplayAbilities",
@@ -20,7 +21,6 @@ public class TowerDefense : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"AIModule",
 			"EnhancedInput",
 			"GameplayTasks",
 			"InputCore",

@@ -1,13 +1,9 @@
 // Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
-
 #include "Abilities/TowerDefenceTags.h"
 
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Turret_State_Ready, "Turret.State.Ready", "Tag when turret is ready for shot");
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Turret_State_NeedsCooldown, "Turret.State.NeedsCooldown", "Tag when turret needs to cooling down between shots");
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Turret_State_Cooldown, "Turret.State.Cooldown", "Tag when turret is cooling down between shots");
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Turret_State_Empty, "Turret.State.Empty", "Tag when turret is out of ammo");
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Turret_State_Reloading, "Turret.State.Reloading", "Tag when turret is reloading");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Attack_Progress, TEXT("Action.Attack.Progress"), "Tag for attack in progress");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Attack_Make, TEXT("Action.Attack.Make"), "Tag for making attack");
 
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Take, "Action.Damage.Take", "Tag for taking damage");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Heal, "Action.Damage.Heal", "Tag for healing damage");

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
 #include "Utils/BaseUtils.h"
 
@@ -21,6 +21,7 @@ namespace Teams
 {
 ETeamAttitude::Type AttitudeSolveFunction(FGenericTeamId Left, FGenericTeamId Right)
 {
+    UE_LOG(LogTemp, Warning, TEXT("Entered AttitudeSolveFunction"));
     if (Left == Right)
     {
         return ETeamAttitude::Friendly;

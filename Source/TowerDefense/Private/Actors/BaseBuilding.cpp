@@ -6,6 +6,8 @@
 #include "Attributes/BuildingAttributeSet.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 #include "Widgets/ProgressBarWidget.h"
 
 ABaseBuilding::ABaseBuilding()
@@ -20,6 +22,17 @@ ABaseBuilding::ABaseBuilding()
     WidgetComponent->SetupAttachment(Mesh);
 
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+    StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+}
+
+FGenericTeamId ABaseBuilding::GetGenericTeamId() const
+{
+    return TeamId;
+}
+
+void ABaseBuilding::SetGenericTeamId(const FGenericTeamId& TeamID)
+{
+    TeamId = TeamID;
 }
 
 UAbilitySystemComponent* ABaseBuilding::GetAbilitySystemComponent() const

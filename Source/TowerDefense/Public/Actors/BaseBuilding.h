@@ -6,20 +6,25 @@
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
 #include "GameplayEffectTypes.h"
+#include "GenericTeamAgentInterface.h"
 #include "BaseBuilding.generated.h"
 
+class UAIPerceptionStimuliSourceComponent;
 class UBoxComponent;
-class UProgressBarWidget;
 class UBuildingAttributeSet;
+class UProgressBarWidget;
 class UWidgetComponent;
 
 UCLASS()
-class TOWERDEFENSE_API ABaseBuilding : public AActor, public IAbilitySystemInterface
+class TOWERDEFENSE_API ABaseBuilding : public AActor, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
     GENERATED_BODY()
 
 public:
     ABaseBuilding();
+
+    virtual FGenericTeamId GetGenericTeamId() const override;
+    virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -38,6 +43,9 @@ protected:
     TObjectPtr<UWidgetComponent> WidgetComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSource;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Tower|Abilities")
@@ -45,4 +53,7 @@ protected:
 
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Tower|Abilities")
     TWeakObjectPtr<UProgressBarWidget> HealthWidget;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
+    FGenericTeamId TeamId;
 };

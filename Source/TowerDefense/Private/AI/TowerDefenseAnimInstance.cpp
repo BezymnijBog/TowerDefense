@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
 #include "AI/TowerDefenseAnimInstance.h"
 
@@ -31,7 +31,6 @@ void UTowerDefenseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     Super::NativeUpdateAnimation(DeltaSeconds);
     if (!OwningCharacter.IsValid() || !OwnerMovement.IsValid())
     {
-        UE_LOG(LogAnimation, Error, TEXT("Stale character pointer for %s"), *GetName());
         return;
     }
 
