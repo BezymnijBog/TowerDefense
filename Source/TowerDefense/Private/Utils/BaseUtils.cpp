@@ -3,6 +3,7 @@
 #include "Utils/BaseUtils.h"
 
 #include "Abilities/GameplayAbilityTypes.h"
+#include "Abilities/Tasks/AbilityTask.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
 namespace
@@ -46,6 +47,14 @@ void SendGameplayEventToInstigator(AActor* Instigator, AActor* Target, FGameplay
 void SendGameplayEventToTarget(AActor* Instigator, AActor* Target, FGameplayTag Tag, float Magnitude)
 {
     UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, MoveTemp(Tag), MakePayload(Instigator, Target, Magnitude));
+}
+
+void EndTask(UAbilityTask* Task)
+{
+    if (IsValid(Task))
+    {
+        Task->EndTask();
+    }
 }
 } // namespace AbilitySystem
 

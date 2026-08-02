@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
-#include "GameplayAbilitySpecHandle.h"
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
 #include "Interfaces/AttackerInterface.h"
+#include "Interfaces/DeathInterface.h"
 #include "TowerDefenseAICharacter.generated.h"
 
 class ATowerDefenseAIController;
@@ -18,10 +18,25 @@ class UProgressBarWidget;
 class UWayComponent;
 class UWidgetComponent;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeathDelegate, class ATowerDefenseAICharacter*);
+USTRUCT()
+struct FDefaultAbilityDescription
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<UGameplayAbility> Ability;
+
+    UPROPERTY(EditAnywhere)
+    bool bActivateAtStartup = false;
+};
 
 UCLASS()
-class TOWERDEFENSE_API ATowerDefenseAICharacter : public ACharacter, public IGenericTeamAgentInterface, public IAbilitySystemInterface, public IAttackerInterface
+class TOWERDEFENSE_API ATowerDefenseAICharacter :
+    public ACharacter,
+    public IGenericTeamAgentInterface,
+    public IAbilitySystemInterface,
+    public IAttackerInterface,
+    public IDeathInterface
 {
     GENERATED_BODY()
 
@@ -36,51 +51,47 @@ public:
 
     virtual float GetAttackRange() const override;
 
-    FOnDeathDelegate OnDeathDelegate;
-
-    bool IsDead() const;
+    virtual bool IsDead() const override;
+    virtual void OnDeath() override;
+    virtual FDeathDelegate& GetDeathDelegate() override;
+    FDeathDelegate DeathDelegate;
 
 protected:
-    virtual void OnDeath();
-
     void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 
     virtual void BeginPlay() override;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UWidgetComponent> WidgetComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UPROPERTY(VisibleAnywhere, Category = "Components")
     TWeakObjectPtr<UProgressBarWidget> HealthWidget;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UWayComponent> WayComponent;
 
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
+    UPROPERTY(VisibleInstanceOnly, Category = "AICharacter|Abilities")
     TObjectPtr<const UAICharacterAttributeSet> AttributeSet;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
-    TSubclassOf<UGameplayAbility> DealDamageAbilityClass;
+    UPROPERTY(EditDefaultsOnly, Category = "AICharacter|Abilities")
+    TArray<FDefaultAbilityDescription> DefaultAbilities;
 
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter|Abilities")
-    FGameplayAbilitySpecHandle DealDamageAbility;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
+    UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
     FGenericTeamId TeamId;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
+    UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
     float DeathDestroyInterval = 5.f;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AICharacter")
+    UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
     float AttackRange = 0.f;
 
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter")
+    UPROPERTY(VisibleInstanceOnly, Category = "AICharacter")
     TWeakObjectPtr<ATowerDefenseAIController> AICharacterController;
 
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AICharacter")
+    UPROPERTY(VisibleInstanceOnly, Category = "AICharacter")
     bool bIsDead = false;
 
 private:

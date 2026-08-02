@@ -13,7 +13,7 @@ FVector UWayComponent::GetNextTargetPoint() const
     }
 
     const USplineComponent* const Way = WayActor->GetWay();
-    const float NextPointInputKey = FMath::Floor(Way->FindInputKeyClosestToWorldLocation(GetOwner()->GetActorLocation())) + 1.f;
+    const float NextPointInputKey = FMath::RoundHalfToEven(Way->FindInputKeyClosestToWorldLocation(GetOwner()->GetActorLocation())) + 1.f;
     return Way->GetLocationAtSplineInputKey(NextPointInputKey, ESplineCoordinateSpace::World);
 }
 

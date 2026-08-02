@@ -40,11 +40,37 @@ UAbilitySystemComponent* ABaseBuilding::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
-void ABaseBuilding::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData) const
+bool ABaseBuilding::IsDead() const
+{
+    return bIsDead;
+}
+
+void ABaseBuilding::OnDeath()
+{
+    bIsDead = true;
+    Mesh->SetStaticMesh(nullptr);
+    if (UUserWidget* const Widget = WidgetComponent->GetWidget(); IsValid(Widget))
+    {
+        Widget->SetVisibility(ESlateVisibility::Collapsed);
+    }
+    GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &ThisClass::OnDeathTimerElapsed, TimeBeforeDestroy);
+}
+
+FDeathDelegate& ABaseBuilding::GetDeathDelegate()
+{
+    return DeathDelegate;
+}
+
+void ABaseBuilding::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
 {
     if (HealthWidget.IsValid())
     {
         HealthWidget->SetPercent(OnAttributeChangeData.NewValue / AttributeSet->GetMaxHealth());
+    }
+
+    if (OnAttributeChangeData.NewValue <= 0.f)
+    {
+        OnDeath();
     }
 }
 
@@ -59,4 +85,10 @@ void ABaseBuilding::BeginPlay()
     {
         HealthWidget->SetPercent(1.f);
     }
+}
+
+void ABaseBuilding::OnDeathTimerElapsed()
+{
+    GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
+    Destroy();
 }

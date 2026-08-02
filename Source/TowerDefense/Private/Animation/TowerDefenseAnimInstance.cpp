@@ -1,6 +1,6 @@
 // Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
-#include "AI/TowerDefenseAnimInstance.h"
+#include "Animation/TowerDefenseAnimInstance.h"
 
 #include "AI/TowerDefenseAICharacter.h"
 #include "GameFramework/PawnMovementComponent.h"

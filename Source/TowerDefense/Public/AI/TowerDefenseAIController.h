@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "DetourCrowdAIController.h"
+#include "Interfaces/DeathInterface.h"
 #include "TowerDefenseAIController.generated.h"
 
 class ATowerDefenseAICharacter;
@@ -26,7 +27,7 @@ struct FBlackboardKeys
 };
 
 UCLASS()
-class TOWERDEFENSE_API ATowerDefenseAIController : public ADetourCrowdAIController, public IAbilitySystemInterface
+class TOWERDEFENSE_API ATowerDefenseAIController : public ADetourCrowdAIController, public IAbilitySystemInterface, public IDeathInterface
 {
     GENERATED_BODY()
 
@@ -37,6 +38,10 @@ public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    virtual bool IsDead() const override;
+    virtual void OnDeath() override;
+    virtual FDeathDelegate& GetDeathDelegate() override;
 
     AActor* GetClosestSensedActor() const;
 
@@ -54,7 +59,12 @@ protected:
     UPROPERTY(VisibleInstanceOnly, Category = "AICharacter")
     bool bIsOffensive = false;
 
+    FDelegateHandle TargetDeathHandle;
+
 private:
     bool IsBeingBeaten() const;
     void SelectNextTarget();
+
+    void RemoveCurrentAttackTarget();
+    void SetCurrentAttackTarget(AActor* NewTarget);
 };

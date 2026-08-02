@@ -2,10 +2,39 @@
 
 #include "Interfaces/InterfaceFunctionLibrary.h"
 
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Interfaces/DeathInterface.h"
 #include "Interfaces/WayInterface.h"
+
+FDeathDelegate& UInterfaceFunctionLibrary::GetDeathDelegate(AActor* Actor)
+{
+    static FDeathDelegate DummyDelegate;
+    if (IDeathInterface* const AsInterface = Cast<IDeathInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetDeathDelegate();
+    }
+
+    if (IsValid(Actor))
+    {
+        UE_LOG(LogActor, Error, TEXT("Input actor was nullptr"));
+    }
+    else
+    {
+        UE_LOG(LogActor, Error, TEXT("%s doesn't implement DeathInterface"), *Actor->GetName());
+    }
+    return DummyDelegate;
+}
+
+void UInterfaceFunctionLibrary::CallOnDeath(AActor* Actor)
+{
+    if (IDeathInterface* const AsInterface = Cast<IDeathInterface>(Actor); AsInterface)
+    {
+        return AsInterface->OnDeath();
+    }
+}
 
 bool UInterfaceFunctionLibrary::IsActorDead(const AActor* Actor)
 {
@@ -39,4 +68,19 @@ UWayComponent* UInterfaceFunctionLibrary::GetWayComponent(const AActor* Actor)
     }
 
     return Actor->GetComponentByClass<UWayComponent>();
+}
+
+UAbilitySystemComponent* UInterfaceFunctionLibrary::GetAbilitySystemComponent(const AActor* Actor)
+{
+    if (!IsValid(Actor))
+    {
+        return nullptr;
+    }
+
+    if (const IAbilitySystemInterface* const AsInterface = Cast<IAbilitySystemInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetAbilitySystemComponent();
+    }
+
+    return Actor->GetComponentByClass<UAbilitySystemComponent>();
 }

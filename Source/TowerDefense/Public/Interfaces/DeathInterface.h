@@ -13,10 +13,14 @@ class UDeathInterface : public UInterface
     GENERATED_BODY()
 };
 
+DECLARE_MULTICAST_DELEGATE(FDeathDelegate);
+
 class TOWERDEFENSE_API IDeathInterface : public IInterface
 {
     GENERATED_BODY()
 
 public:
     virtual bool IsDead() const = 0;
+    virtual void OnDeath() = 0;
+    virtual FDeathDelegate& GetDeathDelegate() = 0;
 };

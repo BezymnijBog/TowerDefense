@@ -9,7 +9,7 @@
 #include "Components/WayComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "TowerDefense.h"
+#include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Utils/BaseUtils.h"
 #include "Widgets/ProgressBarWidget.h"
 
@@ -56,13 +56,23 @@ bool ATowerDefenseAICharacter::IsDead() const
 
 void ATowerDefenseAICharacter::OnDeath()
 {
+    bIsDead = true;
     GetMesh()->SetCollisionProfileName(Collision::NoCollisionProfile);
     GetCapsuleComponent()->SetCollisionProfileName(Collision::NoCollisionProfile);
     GetCharacterMovement()->DisableMovement();
     GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &ThisClass::OnDeathTimerElapsed, DeathDestroyInterval);
-    AbilitySystemComponent->CancelAbilityHandle(DealDamageAbility);
-    HealthWidget->SetVisibility(ESlateVisibility::Collapsed);
-    OnDeathDelegate.Broadcast(this);
+    AbilitySystemComponent->CancelAllAbilities();
+    if (HealthWidget.IsValid())
+    {
+        HealthWidget->SetVisibility(ESlateVisibility::Collapsed);
+    }
+    UInterfaceFunctionLibrary::CallOnDeath(GetController());
+    DeathDelegate.Broadcast();
+}
+
+FDeathDelegate& ATowerDefenseAICharacter::GetDeathDelegate()
+{
+    return DeathDelegate;
 }
 
 void ATowerDefenseAICharacter::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
@@ -83,13 +93,17 @@ void ATowerDefenseAICharacter::BeginPlay()
     Super::BeginPlay();
 
     AttributeSet = AbilitySystemComponent->GetSet<UAICharacterAttributeSet>();
-    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHealthAttribute())
+        .AddUObject(this, &ThisClass::OnHealthChanged);
 
-    DealDamageAbility = AbilitySystemComponent->GiveAbility(DealDamageAbilityClass);
-    //if (!ensure(AbilitySystemComponent->TryActivateAbility(DealDamageAbility)))
-    //{
-    //    UE_LOG(LogTowerDefense, Warning, TEXT("Failed to activate ability for %s"), *GetName());
-    //}
+    for (const auto& [Ability, bActivateAtStartup] : DefaultAbilities)
+    {
+        FGameplayAbilitySpecHandle AbilitySpec = AbilitySystemComponent->GiveAbility(Ability);
+        if (bActivateAtStartup)
+        {
+            AbilitySystemComponent->TryActivateAbility(MoveTemp(AbilitySpec));
+        }
+    }
 
     if (HealthWidget = Cast<UProgressBarWidget>(WidgetComponent->GetWidget()); HealthWidget.IsValid())
     {

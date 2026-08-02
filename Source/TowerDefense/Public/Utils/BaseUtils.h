@@ -7,6 +7,8 @@
 #include "GenericTeamAgentInterface.h"
 #include "BaseUtils.generated.h"
 
+class UAbilityTask;
+
 namespace Teams
 {
 UENUM(BlueprintType)
@@ -41,6 +43,7 @@ namespace AbilitySystem
 {
 void SendGameplayEventToInstigator(AActor* Instigator, AActor* Target, FGameplayTag Tag, float Magnitude = 0.f);
 void SendGameplayEventToTarget(AActor* Instigator, AActor* Target, FGameplayTag Tag, float Magnitude = 0.f);
+void EndTask(UAbilityTask* Task);
 }
 
 // namespace Teams

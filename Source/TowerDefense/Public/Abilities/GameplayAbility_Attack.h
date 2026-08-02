@@ -7,6 +7,14 @@
 #include "GameplayAbility_Attack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
+class UAbilityTask_WaitGameplayEvent;
+
+UENUM(BlueprintType)
+enum class EFinishCondition : uint8
+{
+    OnMontageEnd = 0,
+    OnEventReceived
+};
 
 UCLASS()
 class TOWERDEFENSE_API UGameplayAbility_Attack : public UGameplayAbility
@@ -14,9 +22,16 @@ class TOWERDEFENSE_API UGameplayAbility_Attack : public UGameplayAbility
     GENERATED_BODY()
 
 public:
-    virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+    virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+                                 const FGameplayAbilityActorInfo* ActorInfo,
+                                 const FGameplayAbilityActivationInfo ActivationInfo,
+                                 const FGameplayEventData* TriggerEventData) override;
 
-    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
+                            const FGameplayAbilityActorInfo* ActorInfo,
+                            const FGameplayAbilityActivationInfo ActivationInfo,
+                            bool bReplicateEndAbility,
+                            bool bWasCancelled) override;
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
@@ -31,15 +46,24 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
     TArray<TSubclassOf<UGameplayEffect>> GameplayEffectClassesWhileAnimating;
 
-    UPROPERTY(VisibleDefaultsOnly, Category = Deprecated)
-    TArray<TObjectPtr<const UGameplayEffect>> GameplayEffectsWhileAnimating;
+    UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
+    TSubclassOf<UGameplayEffect> DamageEffect;
+
+    UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
+    EFinishCondition FinishCondition = EFinishCondition::OnMontageEnd;
 
     UPROPERTY()
-    TObjectPtr<UAbilityTask_PlayMontageAndWait> Task;
+    TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
+
+    UPROPERTY()
+    TObjectPtr<UAbilityTask_WaitGameplayEvent> WaitEventTask;
 
     UFUNCTION()
-    void OnTaskCancelled();
+    void OnMontageCancelled();
 
     UFUNCTION()
-    void OnTaskFinished();
+    void OnMontageFinished();
+
+    UFUNCTION()
+    void OnEventReceived(FGameplayEventData Payload);
 };

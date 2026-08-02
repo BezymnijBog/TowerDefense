@@ -40,6 +40,24 @@ UAbilitySystemComponent* ATowerDefenseAIController::GetAbilitySystemComponent() 
     return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn());
 }
 
+bool ATowerDefenseAIController::IsDead() const
+{
+    return UInterfaceFunctionLibrary::IsActorDead(GetPawn());
+}
+
+void ATowerDefenseAIController::OnDeath()
+{
+    BrainComponent->StopLogic(TEXT("Is dead"));
+    Blackboard->SetValueAsFloat(BlackboardKeys.AttackRange, 0.f);
+    Blackboard->SetValueAsObject(BlackboardKeys.AttackTarget, nullptr);
+    Blackboard->SetValueAsVector(BlackboardKeys.DestinationPoint, FVector::ZeroVector);
+}
+
+FDeathDelegate& ATowerDefenseAIController::GetDeathDelegate()
+{
+    return UInterfaceFunctionLibrary::GetDeathDelegate(GetPawn());
+}
+
 AActor* ATowerDefenseAIController::GetClosestSensedActor() const
 {
     TArray<AActor*> VisibleActors;
@@ -55,18 +73,16 @@ AActor* ATowerDefenseAIController::GetClosestSensedActor() const
         return VisibleActors[0];
     }
 
+    VisibleActors.SetNum(Algo::RemoveIf(VisibleActors, [](const AActor* Actor) { return UInterfaceFunctionLibrary::IsActorDead(Actor); }));
     const FVector PawnLocation = ControlledPawn->GetActorLocation();
     if (IsBeingBeaten())
     {
-        VisibleActors.SetNum(
-            Algo::RemoveIf(VisibleActors, [](const AActor* Actor) { return !Actor->IsA<APawn>() || UInterfaceFunctionLibrary::IsActorDead(Actor); }));
-
-        if (VisibleActors.IsEmpty())
-        {
-            return nullptr;
-        }
+        VisibleActors.SetNum(Algo::RemoveIf(VisibleActors, [](const AActor* Actor) { return !Actor->IsA<APawn>(); }));
     }
-    return *Algo::MinElementBy(VisibleActors, [&PawnLocation](const AActor* Actor) { return (Actor->GetActorLocation() - PawnLocation).SquaredLength(); });
+
+    return VisibleActors.IsEmpty() ?
+        nullptr :
+        *Algo::MinElementBy(VisibleActors, [&PawnLocation](const AActor* Actor) { return (Actor->GetActorLocation() - PawnLocation).SquaredLength(); });
 }
 
 FVector ATowerDefenseAIController::SelectNextPatrolPoint()
@@ -108,14 +124,31 @@ bool ATowerDefenseAIController::IsBeingBeaten() const
 
 void ATowerDefenseAIController::SelectNextTarget()
 {
-    UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
+    RemoveCurrentAttackTarget();
     if (AActor* const Target = GetClosestSensedActor(); IsValid(Target))
     {
-        bIsOffensive = true;
-        BlackboardComponent->SetValueAsObject(BlackboardKeys.AttackTarget, Target);
+        SetCurrentAttackTarget(Target);
     }
     else
     {
-        BlackboardComponent->SetValueAsVector(BlackboardKeys.DestinationPoint, SelectNextPatrolPoint());
+        GetBlackboardComponent()->SetValueAsVector(BlackboardKeys.DestinationPoint, SelectNextPatrolPoint());
     }
+}
+
+void ATowerDefenseAIController::RemoveCurrentAttackTarget()
+{
+    UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
+    if (AActor* const CurrentTarget = Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget)); IsValid(CurrentTarget))
+    {
+        UInterfaceFunctionLibrary::GetDeathDelegate(CurrentTarget).Remove(TargetDeathHandle);
+        BlackboardComponent->SetValueAsObject(BlackboardKeys.AttackTarget, nullptr);
+        TargetDeathHandle.Reset();
+    }
+}
+
+void ATowerDefenseAIController::SetCurrentAttackTarget(AActor* NewTarget)
+{
+    bIsOffensive = true;
+    GetBlackboardComponent()->SetValueAsObject(BlackboardKeys.AttackTarget, NewTarget);
+    TargetDeathHandle = UInterfaceFunctionLibrary::GetDeathDelegate(NewTarget).AddUObject(this, &ThisClass::SelectNextTarget);
 }
