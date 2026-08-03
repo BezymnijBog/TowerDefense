@@ -4,10 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GameplayAbility_Attack.generated.h"
+#include "GameplayAbility_PlayMontage.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitGameplayEvent;
 
 UENUM(BlueprintType)
 enum class EFinishCondition : uint8
@@ -17,7 +16,7 @@ enum class EFinishCondition : uint8
 };
 
 UCLASS()
-class TOWERDEFENSE_API UGameplayAbility_Attack : public UGameplayAbility
+class TOWERDEFENSE_API UGameplayAbility_PlayMontage : public UGameplayAbility
 {
     GENERATED_BODY()
 
@@ -46,24 +45,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
     TArray<TSubclassOf<UGameplayEffect>> GameplayEffectClassesWhileAnimating;
 
-    UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
-    TSubclassOf<UGameplayEffect> DamageEffect;
-
-    UPROPERTY(EditDefaultsOnly, Category = MontageAbility)
-    EFinishCondition FinishCondition = EFinishCondition::OnMontageEnd;
-
     UPROPERTY()
     TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
-
-    UPROPERTY()
-    TObjectPtr<UAbilityTask_WaitGameplayEvent> WaitEventTask;
 
     UFUNCTION()
     void OnMontageCancelled();
 
     UFUNCTION()
     void OnMontageFinished();
-
-    UFUNCTION()
-    void OnEventReceived(FGameplayEventData Payload);
 };
