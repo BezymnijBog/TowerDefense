@@ -51,6 +51,9 @@ protected:
     UPROPERTY(VisibleInstanceOnly, Category = "Projectile")
     TWeakObjectPtr<AActor> ShotInstigator;
 
+    UPROPERTY(VisibleInstanceOnly, Category = "Projectile")
+    float MaxFlyTime = 5.f;
+
 private:
     UFUNCTION()
     void OnProjectileHit(UPrimitiveComponent* OverlappedComponent,
@@ -59,4 +62,6 @@ private:
                          int OtherBodyIndex,
                          bool bFromSweep,
                          const FHitResult& SweepResult);
+
+    FTimerHandle ActiveTimer;
 };

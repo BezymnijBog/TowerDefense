@@ -33,10 +33,12 @@ void AProjectile::Activate(const AActor* Target, AActor* InInstigator)
     MovementComponent->HomingTargetComponent = Target->GetRootComponent();
     MovementComponent->Velocity = MovementComponent->MaxSpeed * GetActorTransform().GetRotation().GetAxisX();
     ShotInstigator = InInstigator;
+    GetWorld()->GetTimerManager().SetTimer(ActiveTimer, this, &ThisClass::Deactivate, MaxFlyTime);
 }
 
 void AProjectile::Deactivate()
 {
+    GetWorld()->GetTimerManager().ClearTimer(ActiveTimer);
     SetActorLocation(FVector::ZeroVector);
     Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     MovementComponent->HomingTargetComponent = nullptr;
