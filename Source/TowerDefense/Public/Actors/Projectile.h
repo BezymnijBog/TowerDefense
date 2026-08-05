@@ -22,7 +22,7 @@ class TOWERDEFENSE_API AProjectile : public AActor, public IGenericTeamAgentInte
 public:
     AProjectile();
 
-    void Activate(const FTransform& Transform, const AActor* Target, AActor* InInstigator);
+    void Activate(const AActor* Target, AActor* InInstigator);
     void Deactivate();
 
     virtual FGenericTeamId GetGenericTeamId() const override;
@@ -34,10 +34,13 @@ protected:
     virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
-    TObjectPtr<USphereComponent> SphereRoot;
+    TObjectPtr<USceneComponent> DefaultRoot;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
-    TObjectPtr<UNiagaraComponent> VisualEffect;
+    TObjectPtr<UStaticMeshComponent> StaticMesh;
+
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<USphereComponent> Collision;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UProjectileMovementComponent> MovementComponent;

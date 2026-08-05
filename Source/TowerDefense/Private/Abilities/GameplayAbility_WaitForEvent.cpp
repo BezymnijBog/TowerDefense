@@ -3,7 +3,6 @@
 #include "Abilities/GameplayAbility_WaitForEvent.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemComponent.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Utils/BaseUtils.h"

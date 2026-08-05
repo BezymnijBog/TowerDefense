@@ -4,9 +4,11 @@
 
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Attack_Progress, TEXT("Action.Attack.Progress"), "Tag for attack in progress");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Attack_Make, TEXT("Action.Attack.Make"), "Tag for making attack");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Projectile_Launch, TEXT("Action.Projectile.Launch"), "Tag for launching projectile");
 
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Heavy, TEXT("Action.Damage.Heavy"), "Tag for heavy damage from machines");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Calculate, TEXT("Action.Damage.Calculate"), "Tag for damage calculation");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Deal, TEXT("Action.Damage.Take"), "Tag for dealing damage");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Take, TEXT("Action.Damage.Take"), "Tag for taking damage");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Heal, TEXT("Action.Damage.Heal"), "Tag for healing damage");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Money_Receive, TEXT("Action.Money.Receive"), "Tag for receiving money");

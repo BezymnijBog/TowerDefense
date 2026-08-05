@@ -4,9 +4,11 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "Actors/Projectile.h"
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Interfaces/DeathInterface.h"
+#include "Interfaces/ShooterInterface.h"
 #include "Interfaces/WayInterface.h"
 
 FDeathDelegate& UInterfaceFunctionLibrary::GetDeathDelegate(AActor* Actor)
@@ -83,4 +85,21 @@ UAbilitySystemComponent* UInterfaceFunctionLibrary::GetAbilitySystemComponent(co
     }
 
     return Actor->GetComponentByClass<UAbilitySystemComponent>();
+}
+
+AProjectile* UInterfaceFunctionLibrary::ActivateProjectile(AActor* Actor)
+{
+    if (IShooterInterface* AsInterface = Cast<IShooterInterface>(Actor); AsInterface)
+    {
+        return AsInterface->ActivateProjectile();
+    }
+    return nullptr;
+}
+
+void UInterfaceFunctionLibrary::LaunchActiveProjectile(AActor* Shooter, const AActor* Target)
+{
+    if (IShooterInterface* AsInterface = Cast<IShooterInterface>(Shooter); AsInterface)
+    {
+        return AsInterface->LaunchActiveProjectile(Target);
+    }
 }

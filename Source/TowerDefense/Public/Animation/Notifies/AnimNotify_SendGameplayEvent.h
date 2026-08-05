@@ -14,9 +14,10 @@ class TOWERDEFENSE_API UAnimNotify_SendGameplayEvent : public UAnimNotify
 {
     GENERATED_BODY()
 
-protected:
+public:
     virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
+protected:
     UPROPERTY(EditAnywhere, Category = AnimNotify)
     FName TargetBlackboardKey;
 

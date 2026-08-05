@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "InterfaceFunctionLibrary.generated.h"
 
+class AProjectile;
 class UAbilitySystemComponent;
 class UWayComponent;
 
@@ -25,4 +26,7 @@ public:
     static UWayComponent* GetWayComponent(const AActor* Actor);
 
     static UAbilitySystemComponent* GetAbilitySystemComponent(const AActor* Actor);
+
+    static AProjectile* ActivateProjectile(AActor* Actor);
+    static void LaunchActiveProjectile(AActor* Shooter, const AActor* Target);
 };
