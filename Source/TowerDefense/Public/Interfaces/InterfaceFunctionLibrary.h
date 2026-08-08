@@ -11,6 +11,8 @@ class AProjectile;
 class UAbilitySystemComponent;
 class UWayComponent;
 
+struct FHireInfo;
+
 UCLASS()
 class TOWERDEFENSE_API UInterfaceFunctionLibrary : public UBlueprintFunctionLibrary
 {
@@ -29,4 +31,6 @@ public:
 
     static AProjectile* ActivateProjectile(AActor* Actor);
     static void LaunchActiveProjectile(AActor* Shooter, const AActor* Target);
+
+    static bool GetHireInfo(UObject* Object, FHireInfo& Info);
 };

@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHudWidget.generated.h"
 
-class UBuildMenu;
+class UHireMenu;
 class UMoneyWidget;
 
 UCLASS()
@@ -16,11 +16,12 @@ class TOWERDEFENSE_API UPlayerHudWidget : public UUserWidget
 
 public:
     void SetMoney(float NewMoney) const;
+    virtual void NativeConstruct() override;
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (BindWidget))
     TObjectPtr<UMoneyWidget> MoneyWidget;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (BindWidget))
-    TObjectPtr<UBuildMenu> BuildMenu;
+    TObjectPtr<UHireMenu> BuildMenu;
 };

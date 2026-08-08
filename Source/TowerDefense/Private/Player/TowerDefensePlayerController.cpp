@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Pawn.h"
 #include "TowerDefense.h"
+#include "Widgets/HireMenuElement.h"
 #include "Widgets/PlayerHudWidget.h"
 
 namespace
@@ -38,7 +39,7 @@ ATowerDefensePlayerController::ATowerDefensePlayerController()
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
 
-void ATowerDefensePlayerController::SetBuildingMode(FBuildingInfo InBuildingInfo)
+void ATowerDefensePlayerController::SetBuildingMode(FHireInfo InBuildingInfo)
 {
     //BuildingInfo = MoveTemp(InBuildingInfo);
     //bIsBuildingMode = IsValid(BuildingInfo.BuildingClass);

@@ -9,9 +9,9 @@
 #include "GameplayEffectTypes.h"
 #include "Templates/SubclassOf.h"
 #include "Utils/BaseUtils.h"
+#include "Widgets/HireMenuElement.h"
 #include "TowerDefensePlayerController.generated.h"
 
-//class ADefenderBase;
 class UInputMappingContext;
 class UInputAction;
 class UNiagaraSystem;
@@ -25,7 +25,7 @@ class TOWERDEFENSE_API ATowerDefensePlayerController : public APlayerController,
 public:
     ATowerDefensePlayerController();
 
-    void SetBuildingMode(FBuildingInfo BuildingInfo);
+    void SetBuildingMode(FHireInfo BuildingInfo);
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual void Tick(float DeltaSeconds) override;
@@ -48,7 +48,7 @@ protected:
     TArray<FGameplayAbilitySpecHandle> GivenAbilities;
 #pragma endregion
 
-#pragma region Building
+#pragma region Hire
     UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
@@ -65,7 +65,7 @@ protected:
     TObjectPtr<UMaterialInterface> BuildRejectedMaterial;
 
     UPROPERTY(VisibleInstanceOnly, Category = Building)
-    FBuildingInfo BuildingInfo{};
+    FHireInfo BuildingInfo{};
 
     UPROPERTY(VisibleInstanceOnly, Category = Building)
     bool bIsBuildingMode = false;

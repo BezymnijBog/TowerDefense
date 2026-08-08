@@ -8,6 +8,7 @@
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Interfaces/DeathInterface.h"
+#include "Interfaces/HireElementInterface.h"
 #include "Interfaces/ShooterInterface.h"
 #include "Interfaces/WayInterface.h"
 
@@ -100,6 +101,11 @@ void UInterfaceFunctionLibrary::LaunchActiveProjectile(AActor* Shooter, const AA
 {
     if (IShooterInterface* AsInterface = Cast<IShooterInterface>(Shooter); AsInterface)
     {
-        return AsInterface->LaunchActiveProjectile(Target);
+        AsInterface->LaunchActiveProjectile(Target);
     }
+}
+
+bool UInterfaceFunctionLibrary::GetHireInfo(UObject* Object, FHireInfo& Info)
+{
+    return Object->Implements<UHireElementInterface>() ? Cast<IHireElementInterface>(Object)->GetHireInfo(Info) : false;
 }

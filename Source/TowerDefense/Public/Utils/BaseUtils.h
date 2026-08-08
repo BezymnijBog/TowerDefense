@@ -7,6 +7,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "BaseUtils.generated.h"
 
+class ATowerDefenseAICharacter;
 class UAbilityTask;
 
 namespace Teams
@@ -28,15 +29,30 @@ const FName NoCollisionProfile = TEXT("NoCollision");
 }
 
 USTRUCT()
-struct FBuildingInfo
+struct FHireInfo
 {
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere)
-    uint32 BuildCost = 0;
+    uint32 Cost = 0;
 
-    //UPROPERTY(EditAnywhere)
-    //TSubclassOf<ADefenderBase> BuildingClass;
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<ATowerDefenseAICharacter> Class;
+};
+
+USTRUCT()
+struct FHireWidgetRow : public FTableRowBase, public FHireInfo
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere)
+    FText Name;
+
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<UTexture2D> Image;
+
+    UPROPERTY(EditAnywhere)
+    FVector2f ImageSize;
 };
 
 namespace AbilitySystem
@@ -44,6 +60,6 @@ namespace AbilitySystem
 void SendGameplayEventToInstigator(AActor* Instigator, AActor* Target, FGameplayTag Tag, float Magnitude = 0.f);
 void SendGameplayEventToTarget(AActor* Instigator, AActor* Target, FGameplayTag Tag, float Magnitude = 0.f);
 void EndTask(UAbilityTask* Task);
-}
+} // namespace AbilitySystem
 
 // namespace Teams

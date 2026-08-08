@@ -13,7 +13,7 @@ class UAttackerInterface : public UInterface
     GENERATED_BODY()
 };
 
-class TOWERDEFENSE_API IAttackerInterface
+class TOWERDEFENSE_API IAttackerInterface : public IInterface
 {
     GENERATED_BODY()
 

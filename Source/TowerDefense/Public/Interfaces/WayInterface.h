@@ -14,7 +14,7 @@ class UWayInterface : public UInterface
     GENERATED_BODY()
 };
 
-class TOWERDEFENSE_API IWayInterface
+class TOWERDEFENSE_API IWayInterface : public IInterface
 {
     GENERATED_BODY()
 
