@@ -68,6 +68,16 @@ void ATowerDefensePlayerController::Tick(float DeltaSeconds)
     UpdateBuildingPreview();
 }
 
+FGenericTeamId ATowerDefensePlayerController::GetGenericTeamId() const
+{
+    return TeamId;
+}
+
+void ATowerDefensePlayerController::SetGenericTeamId(const FGenericTeamId& TeamID)
+{
+    TeamId = TeamID;
+}
+
 void ATowerDefensePlayerController::BeginPlay()
 {
     Super::BeginPlay();

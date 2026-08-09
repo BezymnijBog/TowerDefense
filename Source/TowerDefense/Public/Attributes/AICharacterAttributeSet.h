@@ -41,6 +41,10 @@ public:
     GAMEPLAYATTRIBUTE_VALUE_GETTER(Cooldown);
     GAMEPLAYATTRIBUTE_VALUE_SETTER(Cooldown);
 
+    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, Reward);
+    GAMEPLAYATTRIBUTE_VALUE_GETTER(Reward);
+    GAMEPLAYATTRIBUTE_VALUE_SETTER(Reward);
+
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
     FGameplayAttributeData Health;
@@ -62,4 +66,7 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
     FGameplayAttributeData Cooldown;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData Reward;
 };

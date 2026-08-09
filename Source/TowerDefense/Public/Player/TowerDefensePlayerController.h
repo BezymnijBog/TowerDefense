@@ -18,7 +18,7 @@ class UNiagaraSystem;
 class UPlayerAttributeSet;
 
 UCLASS()
-class TOWERDEFENSE_API ATowerDefensePlayerController : public APlayerController, public IAbilitySystemInterface
+class TOWERDEFENSE_API ATowerDefensePlayerController : public APlayerController, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
     GENERATED_BODY()
 
@@ -29,6 +29,9 @@ public:
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual void Tick(float DeltaSeconds) override;
+
+    virtual FGenericTeamId GetGenericTeamId() const override;
+    virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
 
 protected:
     virtual void SetupInputComponent() override;
@@ -47,6 +50,9 @@ protected:
     UPROPERTY(VisibleInstanceOnly, Category = "Abilities")
     TArray<FGameplayAbilitySpecHandle> GivenAbilities;
 #pragma endregion
+
+    UPROPERTY(EditAnywhere, Category = "Team")
+    FGenericTeamId TeamId;
 
 #pragma region Hire
     UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))

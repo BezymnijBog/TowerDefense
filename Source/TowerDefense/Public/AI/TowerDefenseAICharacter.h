@@ -96,6 +96,7 @@ protected:
 
 private:
     void OnDeathTimerElapsed();
+    void GiveReward();
 
     FTimerHandle DeathTimer;
 };

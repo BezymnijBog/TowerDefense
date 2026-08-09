@@ -2,6 +2,7 @@
 
 #include "AI/TowerDefenseAICharacter.h"
 
+#include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Attributes/AICharacterAttributeSet.h"
@@ -57,6 +58,7 @@ bool ATowerDefenseAICharacter::IsDead() const
 void ATowerDefenseAICharacter::OnDeath()
 {
     bIsDead = true;
+    GiveReward();
     GetMesh()->SetCollisionProfileName(Collision::NoCollisionProfile);
     GetCapsuleComponent()->SetCollisionProfileName(Collision::NoCollisionProfile);
     GetCharacterMovement()->DisableMovement();
@@ -116,4 +118,15 @@ void ATowerDefenseAICharacter::OnDeathTimerElapsed()
 {
     GetWorld()->GetTimerManager().ClearTimer(DeathTimer);
     Destroy();
+}
+
+void ATowerDefenseAICharacter::GiveReward()
+{
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        if (It->IsValid() && FGenericTeamId::GetAttitude(this, It->Get()) == ETeamAttitude::Hostile)
+        {
+            AbilitySystem::SendGameplayEventToInstigator(this, It->Get(), Action_Money_Receive, AttributeSet->GetReward());
+        }
+    }
 }
