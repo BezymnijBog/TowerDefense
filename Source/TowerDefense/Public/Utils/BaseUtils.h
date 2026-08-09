@@ -41,9 +41,15 @@ struct FHireInfo
 };
 
 USTRUCT()
-struct FHireWidgetRow : public FTableRowBase, public FHireInfo
+struct FHireWidgetRow : public FTableRowBase
 {
     GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere)
+    uint32 Cost = 0;
+
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<ATowerDefenseAICharacter> Class;
 
     UPROPERTY(EditAnywhere)
     FText Name;

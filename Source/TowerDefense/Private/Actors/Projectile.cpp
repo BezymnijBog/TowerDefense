@@ -33,7 +33,7 @@ void AProjectile::Activate(const AActor* Target, AActor* InInstigator)
     MovementComponent->HomingTargetComponent = Target->GetRootComponent();
     MovementComponent->Velocity = MovementComponent->MaxSpeed * GetActorTransform().GetRotation().GetAxisX();
     ShotInstigator = InInstigator;
-    GetWorld()->GetTimerManager().SetTimer(ActiveTimer, this, &ThisClass::Deactivate, MaxFlyTime);
+    GetWorld()->GetTimerManager().SetTimer(ActiveTimer, this, &ThisClass::ReturnProjectile, MaxFlyTime);
 }
 
 void AProjectile::Deactivate()
@@ -59,10 +59,21 @@ void AProjectile::SetGenericTeamId(const FGenericTeamId& TeamID)
 void AProjectile::BeginPlay()
 {
     Super::BeginPlay();
-    Collision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnProjectileHit);
+    Collision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnComponentBeginOverlap);
+    Collision->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnComponentEndOverlap);
 }
 
-void AProjectile::OnProjectileHit(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int, bool, const FHitResult&)
+void AProjectile::OnComponentBeginOverlap(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int, bool, const FHitResult&)
+{
+    OnActorHit(OtherActor);
+}
+
+void AProjectile::OnComponentEndOverlap(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int)
+{
+    OnActorHit(OtherActor);
+}
+
+void AProjectile::OnActorHit(AActor* OtherActor)
 {
     if (!IsValid(OtherActor) || GetTeamAttitudeTowards(*OtherActor) != ETeamAttitude::Hostile)
     {
@@ -74,4 +85,9 @@ void AProjectile::OnProjectileHit(UPrimitiveComponent*, AActor* OtherActor, UPri
         AbilitySystem::SendGameplayEventToInstigator(InstigatorStrong.Get(), OtherActor, Action_Damage_Take);
         std::ignore = OnHitDelegate.ExecuteIfBound(this);
     }
+}
+
+void AProjectile::ReturnProjectile()
+{
+    std::ignore = OnHitDelegate.ExecuteIfBound(this);
 }
