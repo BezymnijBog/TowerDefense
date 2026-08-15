@@ -23,7 +23,7 @@ void UGameplayAbility_PlayMontage::ActivateAbility(const FGameplayAbilitySpecHan
     MontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageCancelled);
     MontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageFinished);
     MontageTask->OnBlendOut.AddDynamic(this, &ThisClass::OnMontageFinished);
-    MontageTask->Activate();
+    MontageTask->ReadyForActivation();
 }
 
 void UGameplayAbility_PlayMontage::EndAbility(const FGameplayAbilitySpecHandle Handle,

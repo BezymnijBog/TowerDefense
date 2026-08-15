@@ -18,17 +18,7 @@ class UProgressBarWidget;
 class UWayComponent;
 class UWidgetComponent;
 
-USTRUCT()
-struct FDefaultAbilityDescription
-{
-    GENERATED_BODY()
-
-    UPROPERTY(EditAnywhere)
-    TSubclassOf<UGameplayAbility> Ability;
-
-    UPROPERTY(EditAnywhere)
-    bool bActivateAtStartup = false;
-};
+struct FDefaultAbilityDescription;
 
 UCLASS()
 class TOWERDEFENSE_API ATowerDefenseAICharacter :

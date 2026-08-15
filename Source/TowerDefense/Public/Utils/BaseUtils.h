@@ -9,6 +9,7 @@
 
 class ATowerDefenseAICharacter;
 class UAbilityTask;
+class UGameplayAbility;
 
 namespace Teams
 {

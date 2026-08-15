@@ -35,4 +35,8 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = HireMenu, meta = (BindWidget))
     TObjectPtr<UImage> UnitImage;
+
+private:
+    UFUNCTION()
+    void OnButtonPressed();
 };

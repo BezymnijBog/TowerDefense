@@ -11,6 +11,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
+#include "Utils/AbilityDescription.h"
 #include "Utils/BaseUtils.h"
 #include "Widgets/ProgressBarWidget.h"
 
@@ -98,10 +99,9 @@ void ATowerDefenseAICharacter::BeginPlay()
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHealthAttribute())
         .AddUObject(this, &ThisClass::OnHealthChanged);
 
-    for (const auto& [Ability, bActivateAtStartup] : DefaultAbilities)
+    for (const FDefaultAbilityDescription& AbilityDescription : DefaultAbilities)
     {
-        FGameplayAbilitySpecHandle AbilitySpec = AbilitySystemComponent->GiveAbility(Ability);
-        if (bActivateAtStartup)
+        if (FGameplayAbilitySpecHandle AbilitySpec = AbilitySystemComponent->GiveAbility(AbilityDescription.ToSpec()); AbilityDescription.bActivateAtStartup)
         {
             AbilitySystemComponent->TryActivateAbility(MoveTemp(AbilitySpec));
         }
@@ -126,7 +126,7 @@ void ATowerDefenseAICharacter::GiveReward()
     {
         if (It->IsValid() && FGenericTeamId::GetAttitude(this, It->Get()) == ETeamAttitude::Hostile)
         {
-            AbilitySystem::SendGameplayEventToInstigator(this, It->Get(), Action_Money_Receive, AttributeSet->GetReward());
+            AbilitySystem::SendGameplayEventToInstigator(this, It->Get(), Action_Money_Change, AttributeSet->GetReward());
         }
     }
 }

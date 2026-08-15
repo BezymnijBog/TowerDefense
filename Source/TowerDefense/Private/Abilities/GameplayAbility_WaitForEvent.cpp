@@ -3,6 +3,7 @@
 #include "Abilities/GameplayAbility_WaitForEvent.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Utils/BaseUtils.h"
@@ -19,7 +20,7 @@ void UGameplayAbility_WaitForEvent::ActivateAbility(const FGameplayAbilitySpecHa
     }
     WaitEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, EventTag);
     WaitEventTask->EventReceived.AddUniqueDynamic(this, &ThisClass::OnEventReceived);
-    WaitEventTask->Activate();
+    WaitEventTask->ReadyForActivation();
 }
 
 void UGameplayAbility_WaitForEvent::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -41,7 +42,9 @@ void UGameplayAbility_WaitForEvent::OnEventReceived(FGameplayEventData Payload)
         return;
     }
 
-    SourceComp->ApplyGameplayEffectToTarget(EffectOnEvent->GetDefaultObject<UGameplayEffect>(), TargetComp);
+    FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(EffectOnEvent);
+    SpecHandle = UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, EventTag, Payload.EventMagnitude);
+    SourceComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data, TargetComp);
     if (bFinishOnEventReceived)
     {
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);

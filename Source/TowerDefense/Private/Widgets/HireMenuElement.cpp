@@ -2,6 +2,9 @@
 
 #include "Widgets/HireMenuElement.h"
 
+#include "Abilities/TowerDefenceTags.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AI/TowerDefenseAICharacter.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -29,4 +32,16 @@ void UHireMenuElement::InitializeElement(const FHireWidgetRow* TableRow)
     UnitImage->SetBrushResourceObject(TableRow->Image);
     CostText->SetText(FText::AsNumber(Info.Cost));
     PressButton->SetToolTipText(TableRow->Name);
+    PressButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OnButtonPressed);
+}
+
+void UHireMenuElement::OnButtonPressed()
+{
+    APlayerController* const OwnerController = GetOwningPlayer();
+    FGameplayEventData Payload;
+    Payload.Target = OwnerController;
+    Payload.Instigator = OwnerController;
+    Payload.OptionalObject = Info.Class.Get();
+    Payload.EventMagnitude = Info.Cost;
+    UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerController, Mode_Placement_Start, MoveTemp(Payload));
 }

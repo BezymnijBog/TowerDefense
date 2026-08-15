@@ -5,17 +5,14 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerController.h"
-#include "GameplayAbilitySpecHandle.h"
-#include "GameplayEffectTypes.h"
+#include "InputActionValue.h"
 #include "Templates/SubclassOf.h"
 #include "Utils/BaseUtils.h"
-#include "Widgets/HireMenuElement.h"
 #include "TowerDefensePlayerController.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
-class UNiagaraSystem;
-class UPlayerAttributeSet;
+class UPlayerAbilitySystemComponent;
 
 UCLASS()
 class TOWERDEFENSE_API ATowerDefensePlayerController : public APlayerController, public IAbilitySystemInterface, public IGenericTeamAgentInterface
@@ -37,19 +34,8 @@ protected:
     virtual void SetupInputComponent() override;
     virtual void BeginPlay() override;
 
-#pragma region GameplayAbilitySystem
-    UPROPERTY(VisibleDefaultsOnly, Category = "Abilities")
-    TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
-
-    UPROPERTY(VisibleAnywhere, Category = "Abilities")
-    TObjectPtr<const UPlayerAttributeSet> PlayerAttributes;
-
-    UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-    TArray<TSubclassOf<UGameplayAbility>> DefaultAbilityClasses;
-
-    UPROPERTY(VisibleInstanceOnly, Category = "Abilities")
-    TArray<FGameplayAbilitySpecHandle> GivenAbilities;
-#pragma endregion
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UPlayerAbilitySystemComponent> AbilitySystemComponent;
 
     UPROPERTY(EditAnywhere, Category = "Team")
     FGenericTeamId TeamId;
@@ -79,8 +65,6 @@ protected:
 
 private:
     void BuildPreviewActor();
-    void InitializeAbilitySystem();
-    void OnMoneyChanged(const FOnAttributeChangeData& OnAttributeChangeData) const;
     void UpdateBuildingPreview() const;
 
     FVector CachedDestination = FVector::ZeroVector;

@@ -2,10 +2,8 @@
 
 #include "Player/TowerDefensePlayerController.h"
 
-#include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemComponent.h"
-#include "Actors/PlayerHUD.h"
-#include "Attributes/PlayerAttributeSet.h"
+#include "Components/PlayerAbilitySystemComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
@@ -13,22 +11,6 @@
 #include "GameFramework/Pawn.h"
 #include "TowerDefense.h"
 #include "Widgets/HireMenuElement.h"
-#include "Widgets/PlayerHudWidget.h"
-
-namespace
-{
-FVector SnappedToGrid(const FVector& Input, const FVector& GridSize, const FVector& GridOffset)
-{
-    const auto SnappedToAxis = [](double Value, double Size, double Offset)
-    {
-        return FMath::RoundHalfFromZero((Value - Offset) / Size) * Size + Offset;
-    };
-
-    return { SnappedToAxis(Input.X, GridSize.X, GridOffset.X),
-             SnappedToAxis(Input.Y, GridSize.Y, GridOffset.Y),
-             SnappedToAxis(Input.Z, GridSize.Z, GridOffset.Z) };
-}
-} // namespace
 
 ATowerDefensePlayerController::ATowerDefensePlayerController()
 {
@@ -36,7 +18,7 @@ ATowerDefensePlayerController::ATowerDefensePlayerController()
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
 
-    AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+    AbilitySystemComponent = CreateDefaultSubobject<UPlayerAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
 
 void ATowerDefensePlayerController::SetBuildingMode(FHireInfo InBuildingInfo)
@@ -86,7 +68,6 @@ void ATowerDefensePlayerController::BeginPlay()
     {
         UE_LOG(LogTowerDefense, Error, TEXT("Invalid materials for building"));
     }
-    InitializeAbilitySystem();
 }
 
 void ATowerDefensePlayerController::SetupInputComponent()
@@ -118,34 +99,6 @@ void ATowerDefensePlayerController::BuildPreviewActor()
     //PreviewActor->FinishBuilding();
     //PreviewActor = nullptr;
     //SetBuildingMode({});
-}
-
-void ATowerDefensePlayerController::InitializeAbilitySystem()
-{
-    if (!IsValid(AbilitySystemComponent))
-    {
-        return;
-    }
-
-    PlayerAttributes = AbilitySystemComponent->AddSet<UPlayerAttributeSet>();
-    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UPlayerAttributeSet::GetMoneyAttribute()).AddUObject(this, &ThisClass::OnMoneyChanged);
-
-    for (const TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilityClasses)
-    {
-        const FGameplayAbilitySpecHandle& AbilitySpec = GivenAbilities.Emplace_GetRef(AbilitySystemComponent->GiveAbility(AbilityClass));
-        if (!AbilitySystemComponent->TryActivateAbility(AbilitySpec))
-        {
-            UE_LOG(LogTowerDefense, Warning, TEXT("Failed to activate ability %s for %s"), *AbilitySpec.ToString(), *GetName());
-        }
-    }
-}
-
-void ATowerDefensePlayerController::OnMoneyChanged(const FOnAttributeChangeData& OnAttributeChangeData) const
-{
-    if (const APlayerHUD* const HUD = GetHUD<APlayerHUD>(); HUD && HUD->GetHUDWidget())
-    {
-        HUD->GetHUDWidget()->SetMoney(OnAttributeChangeData.NewValue);
-    }
 }
 
 void ATowerDefensePlayerController::UpdateBuildingPreview() const

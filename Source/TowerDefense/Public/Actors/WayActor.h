@@ -18,7 +18,15 @@ public:
 
     USplineComponent* GetWay() const;
 
+    bool CanSpawnUnit(const FVector& SpawnLocation) const;
+
 protected:
-    UPROPERTY(VisibleAnywhere, Category=Components)
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+    UPROPERTY(VisibleAnywhere, Category = Components)
     TObjectPtr<USplineComponent> SplineComponent;
+
+    UPROPERTY(EditAnywhere, Category = WayActor)
+    double MaxSpawnDistance = 100.;
 };
