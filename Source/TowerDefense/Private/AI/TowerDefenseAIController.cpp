@@ -112,6 +112,8 @@ void ATowerDefenseAIController::OnPossess(APawn* InPawn)
         UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
         BlackboardComponent->SetValueAsFloat(BlackboardKeys.AttackRange, UInterfaceFunctionLibrary::GetAttackRange(InPawn));
         BlackboardComponent->SetValueAsVector(BlackboardKeys.DestinationPoint, SelectNextPatrolPoint());
+        PerceptionComponent->RequestStimuliListenerUpdate();
+        SelectNextTarget();
     }
 }
 
