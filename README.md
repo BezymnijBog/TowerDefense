@@ -38,19 +38,19 @@ Current technical goals include:
 - Combat system
 - Gameplay Ability System integration
 - Health and damage system
+- Unit recruitment UI
+- Resource economy
 
 ## Roadmap
 
 Near-term:
-- Unit recruitment UI
 - Enemy wave management
-- Resource economy
+- AI improvements
 
 Future:
 - Siege units
 - Data-driven balancing
 - Save/Load
-- AI improvements
 - Additional unit archetypes
 
 ## Development Philosophy
