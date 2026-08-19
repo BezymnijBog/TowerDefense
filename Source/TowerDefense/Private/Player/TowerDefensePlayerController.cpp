@@ -6,37 +6,16 @@
 #include "Components/PlayerAbilitySystemComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Pawn.h"
-#include "TowerDefense.h"
 #include "Widgets/HireMenuElement.h"
 
 ATowerDefensePlayerController::ATowerDefensePlayerController()
 {
-    bIsTouch = false;
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
 
     AbilitySystemComponent = CreateDefaultSubobject<UPlayerAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-}
-
-void ATowerDefensePlayerController::SetBuildingMode(FHireInfo InBuildingInfo)
-{
-    //BuildingInfo = MoveTemp(InBuildingInfo);
-    //bIsBuildingMode = IsValid(BuildingInfo.BuildingClass);
-    //if (bIsBuildingMode)
-    //{
-    //    FHitResult HitResult;
-    //    GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-    //    const FTransform SpawnTransform(FRotator::ZeroRotator, HitResult.Location);
-    //    PreviewActor = GetWorld()->SpawnActor<ADefenderBase>(BuildingInfo.BuildingClass, SpawnTransform);
-    //    PreviewActor->UpdateIsBuildingAllowed();
-    //}
-    //else if (IsValid(PreviewActor))
-    //{
-    //    PreviewActor->Destroy();
-    //}
 }
 
 UAbilitySystemComponent* ATowerDefensePlayerController::GetAbilitySystemComponent() const
@@ -47,7 +26,6 @@ UAbilitySystemComponent* ATowerDefensePlayerController::GetAbilitySystemComponen
 void ATowerDefensePlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-    UpdateBuildingPreview();
 }
 
 FGenericTeamId ATowerDefensePlayerController::GetGenericTeamId() const
@@ -63,11 +41,6 @@ void ATowerDefensePlayerController::SetGenericTeamId(const FGenericTeamId& TeamI
 void ATowerDefensePlayerController::BeginPlay()
 {
     Super::BeginPlay();
-
-    if (!IsValid(BuildAllowedMaterial) || !IsValid(BuildRejectedMaterial))
-    {
-        UE_LOG(LogTowerDefense, Error, TEXT("Invalid materials for building"));
-    }
 }
 
 void ATowerDefensePlayerController::SetupInputComponent()
@@ -78,48 +51,4 @@ void ATowerDefensePlayerController::SetupInputComponent()
     {
         Subsystem->AddMappingContext(DefaultMappingContext, 0);
     }
-
-    if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
-    {
-        EnhancedInputComponent->BindAction(BuildClickAction, ETriggerEvent::Triggered, this, &ThisClass::BuildPreviewActor);
-    }
-    else
-    {
-        UE_LOG(LogTowerDefense, Error, TEXT("'%s' Failed to find an Enhanced Input Component!"), *GetNameSafe(this));
-    }
-}
-
-void ATowerDefensePlayerController::BuildPreviewActor()
-{
-    //if (!IsValid(PreviewActor) || !PreviewActor->IsAllowedToBuild())
-    //{
-    //    return;
-    //}
-    //AbilitySystem::SendGameplayEventToInstigator(this, this, Action_Money_Spend);
-    //PreviewActor->FinishBuilding();
-    //PreviewActor = nullptr;
-    //SetBuildingMode({});
-}
-
-void ATowerDefensePlayerController::UpdateBuildingPreview() const
-{
-    //if (!bIsBuildingMode)
-    //{
-    //    return;
-    //}
-
-    //static constexpr double TraceLength = 100000.;
-    //static const FVector GridSize = FVector::OneVector * 100.;
-    //static const FVector GridOffset = FVector::ForwardVector * 50. + FVector::RightVector * 50. + FVector::UpVector * 0.;
-
-    //FVector TraceStart;
-    //FVector TraceDir;
-    //DeprojectMousePositionToWorld(TraceStart, TraceDir);
-    //FCollisionQueryParams Query(TEXT("Building trace"), false, GetPawn());
-    //Query.AddIgnoredActor(PreviewActor);
-
-    //if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceStart + TraceDir * TraceLength, ECC_Visibility, Query))
-    //{
-    //    PreviewActor->SetActorLocation(SnappedToGrid(HitResult.Location, GridSize, GridOffset));
-    //}
 }
