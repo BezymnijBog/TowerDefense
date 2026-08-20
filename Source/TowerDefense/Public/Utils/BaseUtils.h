@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "GenericTeamAgentInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "BaseUtils.generated.h"
 
 class ATowerDefenseAICharacter;
@@ -68,5 +69,14 @@ void SendGameplayEventToInstigator(AActor* Instigator, AActor* Target, FGameplay
 void SendGameplayEventToTarget(AActor* Instigator, AActor* Target, FGameplayTag Tag, float Magnitude = 0.f);
 void EndTask(UAbilityTask* Task);
 } // namespace AbilitySystem
+
+namespace Utils
+{
+template <std::derived_from<AActor> T>
+T* GetActorOfClass(UObject* WorldContext)
+{
+    return Cast<T>(UGameplayStatics::GetActorOfClass(WorldContext, T::StaticClass()));
+}
+} // namespace Utils
 
 // namespace Teams

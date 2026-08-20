@@ -4,6 +4,12 @@
 
 #include "Widgets/HireMenu.h"
 #include "Widgets/MoneyWidget.h"
+#include "Widgets/StartWaveWidget.h"
+
+void UPlayerHudWidget::ToggleWaveWidgetVisibility(bool bIsVisible) const
+{
+    StartWave->SetVisibility(bIsVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+}
 
 void UPlayerHudWidget::SetMoney(float NewMoney) const
 {

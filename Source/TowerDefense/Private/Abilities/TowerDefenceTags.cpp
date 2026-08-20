@@ -14,6 +14,9 @@ UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Damage_Heal, TEXT("Action.Damage.Heal"), "
 
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Money_Change, TEXT("Action.Money.Change"), "Tag for changing the amount of money");
 
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Wave_Start, TEXT("Action.Wave.Start"), "Tag for starting the wave");
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Wave_Finished, TEXT("Action.Wave.Finished"), "Tag for finishing the wave");
+
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Mode_Placement_Start, TEXT("Mode.Placement.Start"), "Tag for placement mode start");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Mode_Placement_End, TEXT("Mode.Placement.End"), "Tag for placement mode end");
 

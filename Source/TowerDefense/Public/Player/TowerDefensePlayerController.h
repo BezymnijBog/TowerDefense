@@ -22,7 +22,6 @@ public:
     ATowerDefensePlayerController();
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-    virtual void Tick(float DeltaSeconds) override;
 
     virtual FGenericTeamId GetGenericTeamId() const override;
     virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
@@ -37,6 +36,16 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Team")
     FGenericTeamId TeamId;
 
-    UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputMappingContext> DefaultMappingContext;
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    TObjectPtr<UInputMappingContext> MovementMappingContext;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    TObjectPtr<UInputMappingContext> CommonMappingContext;
+
+    UPROPERTY(EditDefaultsOnly, Category = Input)
+    TObjectPtr<UInputAction> StartWaveAction;
+
+private:
+    void StartWave();
+    void OnWaveCleared();
 };

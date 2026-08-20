@@ -51,6 +51,7 @@ Future:
 - Siege units
 - Data-driven balancing
 - Save/Load
+- VFX
 - Additional unit archetypes
 
 ## Development Philosophy
