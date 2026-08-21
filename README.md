@@ -40,11 +40,11 @@ Current technical goals include:
 - Health and damage system
 - Unit recruitment UI
 - Resource economy
+- Wave spawn system
 
 ## Roadmap
 
 Near-term:
-- Enemy wave management
 - AI improvements
 
 Future:
@@ -53,6 +53,7 @@ Future:
 - Save/Load
 - VFX
 - Additional unit archetypes
+- Wave management and scaling
 
 ## Development Philosophy
 
