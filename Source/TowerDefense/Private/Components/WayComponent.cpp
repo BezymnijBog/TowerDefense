@@ -14,7 +14,9 @@ FVector UWayComponent::GetNextTargetPoint() const
 
     const USplineComponent* const Way = WayActor->GetWay();
     const float NextPointInputKey = FMath::RoundHalfToEven(Way->FindInputKeyClosestToWorldLocation(GetOwner()->GetActorLocation())) + 1.f;
-    return Way->GetLocationAtSplineInputKey(NextPointInputKey, ESplineCoordinateSpace::World);
+    const FVector Offset = Way->GetRotationAtSplineInputKey(NextPointInputKey, ESplineCoordinateSpace::Local).RotateVector(SpawnOffset);
+    const FVector Result = Way->GetLocationAtSplineInputKey(NextPointInputKey, ESplineCoordinateSpace::World) + Offset;
+    return Result;
 }
 
 FVector UWayComponent::GetClosestPoint() const
@@ -23,7 +25,15 @@ FVector UWayComponent::GetClosestPoint() const
     {
         return FVector::ZeroVector;
     }
-    return WayActor->GetWay()->FindLocationClosestToWorldLocation(GetOwner()->GetActorLocation(), ESplineCoordinateSpace::World);
+    const USplineComponent* const Way = WayActor->GetWay();
+    const FVector OwnerLocation = GetOwner()->GetActorLocation();
+    const FVector Offset = Way->FindRotationClosestToWorldLocation(OwnerLocation, ESplineCoordinateSpace::Local).RotateVector(SpawnOffset);
+    return Way->FindLocationClosestToWorldLocation(OwnerLocation, ESplineCoordinateSpace::World) + Offset;
+}
+
+void UWayComponent::SetSpawnOffset(const FVector& Offset)
+{
+    SpawnOffset = Offset;
 }
 
 void UWayComponent::SetWayActor(AWayActor* InActor)

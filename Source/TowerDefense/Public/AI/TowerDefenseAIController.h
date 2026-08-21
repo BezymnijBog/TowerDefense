@@ -67,4 +67,5 @@ private:
 
     void RemoveCurrentAttackTarget();
     void SetCurrentAttackTarget(AActor* NewTarget);
+    bool HasValidTarget() const;
 };

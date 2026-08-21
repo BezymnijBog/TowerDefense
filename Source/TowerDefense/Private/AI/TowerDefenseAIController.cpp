@@ -126,6 +126,11 @@ bool ATowerDefenseAIController::IsBeingBeaten() const
 
 void ATowerDefenseAIController::SelectNextTarget()
 {
+    if (HasValidTarget())
+    {
+        return;
+    }
+
     RemoveCurrentAttackTarget();
     if (AActor* const Target = GetClosestSensedActor(); IsValid(Target))
     {
@@ -153,4 +158,14 @@ void ATowerDefenseAIController::SetCurrentAttackTarget(AActor* NewTarget)
     bIsOffensive = true;
     GetBlackboardComponent()->SetValueAsObject(BlackboardKeys.AttackTarget, NewTarget);
     TargetDeathHandle = UInterfaceFunctionLibrary::GetDeathDelegate(NewTarget).AddUObject(this, &ThisClass::SelectNextTarget);
+}
+
+bool ATowerDefenseAIController::HasValidTarget() const
+{
+    const UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
+    if (const AActor* const CurrentTarget = Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget)); IsValid(CurrentTarget))
+    {
+        return !UInterfaceFunctionLibrary::IsActorDead(CurrentTarget);
+    }
+    return false;
 }

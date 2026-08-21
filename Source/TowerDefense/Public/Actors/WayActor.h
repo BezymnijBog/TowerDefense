@@ -68,6 +68,7 @@ private:
     void ClearSpawnComponents();
     void PositionSpawnComponents(const FTransform& Transform);
 
+    FRotator StartRotation = FRotator::ZeroRotator;
     FTimerHandle WaveTimer;
     TArray<FTimerHandle> SpawnTimers;
     int32 CurrentLaneIdx = 0;

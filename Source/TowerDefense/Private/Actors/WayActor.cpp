@@ -64,6 +64,7 @@ void AWayActor::BeginPlay()
     {
         SpawnComponent->UnitStartSpawn.BindUObject(this, &ThisClass::OnUnitStartedSpawn, SpawnComponent);
     }
+    StartRotation = SplineComponent->GetRotationAtSplineInputKey(0.f, ESplineCoordinateSpace::Local);
 }
 
 void AWayActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -95,11 +96,13 @@ void AWayActor::SetupWave()
 
 void AWayActor::OnUnitStartedSpawn(ATowerDefenseAICharacter* SpawnedUnit, UUnitSpawnComponent* SpawnedComponent)
 {
+
     if (IsValid(SpawnedUnit))
     {
         SpawnedUnits.Emplace(SpawnedUnit);
         SpawnedUnit->DeathDelegate.AddUObject(this, &ThisClass::OnSpawnedUnitDead, SpawnedUnit);
         SpawnedUnit->GetWayComponent()->SetWayActor(this);
+        SpawnedUnit->GetWayComponent()->SetSpawnOffset(StartRotation.UnrotateVector(SpawnedComponent->GetRelativeLocation()));
         SpawnedUnit->FinishSpawning(SpawnedComponent->GetComponentTransform());
     }
 

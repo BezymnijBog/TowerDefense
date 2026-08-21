@@ -17,9 +17,13 @@ public:
     FVector GetNextTargetPoint() const;
     FVector GetClosestPoint() const;
 
+    void SetSpawnOffset(const FVector& Offset);
     void SetWayActor(AWayActor* InActor);
 
 protected:
     UPROPERTY(EditAnywhere, Category = WayComponent)
     TWeakObjectPtr<AWayActor> WayActor;
+
+    UPROPERTY(VisibleInstanceOnly, Category = WayComponent)
+    FVector SpawnOffset = FVector::ZeroVector;
 };
