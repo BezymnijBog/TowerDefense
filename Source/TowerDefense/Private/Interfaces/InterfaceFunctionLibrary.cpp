@@ -88,20 +88,19 @@ UAbilitySystemComponent* UInterfaceFunctionLibrary::GetAbilitySystemComponent(co
     return Actor->GetComponentByClass<UAbilitySystemComponent>();
 }
 
-AProjectile* UInterfaceFunctionLibrary::ActivateProjectile(AActor* Actor)
+void UInterfaceFunctionLibrary::ActivateProjectile(AActor* Actor)
 {
     if (IShooterInterface* AsInterface = Cast<IShooterInterface>(Actor); AsInterface)
     {
-        return AsInterface->ActivateProjectile();
+        AsInterface->ActivateProjectile();
     }
-    return nullptr;
 }
 
-void UInterfaceFunctionLibrary::LaunchActiveProjectile(AActor* Shooter, const AActor* Target)
+void UInterfaceFunctionLibrary::LaunchActiveProjectile(AActor* Shooter)
 {
     if (IShooterInterface* AsInterface = Cast<IShooterInterface>(Shooter); AsInterface)
     {
-        AsInterface->LaunchActiveProjectile(Target);
+        AsInterface->LaunchActiveProjectile();
     }
 }
 

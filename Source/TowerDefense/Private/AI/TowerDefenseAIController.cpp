@@ -51,6 +51,9 @@ void ATowerDefenseAIController::OnDeath()
     Blackboard->SetValueAsFloat(BlackboardKeys.AttackRange, 0.f);
     Blackboard->SetValueAsObject(BlackboardKeys.AttackTarget, nullptr);
     Blackboard->SetValueAsVector(BlackboardKeys.DestinationPoint, FVector::ZeroVector);
+    StopMovement();
+    UnPossess();
+    Destroy();
 }
 
 FDeathDelegate& ATowerDefenseAIController::GetDeathDelegate()

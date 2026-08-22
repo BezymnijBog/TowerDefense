@@ -60,10 +60,15 @@ void ATowerDefenseAICharacter::OnDeath()
 {
     bIsDead = true;
     GiveReward();
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetMesh()->SetCollisionProfileName(Collision::NoCollisionProfile);
+    GetMesh()->SetCanEverAffectNavigation(false);
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCapsuleComponent()->SetCollisionProfileName(Collision::NoCollisionProfile);
+    GetCapsuleComponent()->SetCanEverAffectNavigation(false);
     GetCharacterMovement()->DisableMovement();
     GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &ThisClass::OnDeathTimerElapsed, DeathDestroyInterval);
+    SetCanAffectNavigationGeneration(false, true);
     AbilitySystemComponent->CancelAllAbilities();
     if (HealthWidget.IsValid())
     {

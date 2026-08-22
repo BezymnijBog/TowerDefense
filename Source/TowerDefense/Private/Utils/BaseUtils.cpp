@@ -22,7 +22,6 @@ namespace Teams
 {
 ETeamAttitude::Type AttitudeSolveFunction(FGenericTeamId Left, FGenericTeamId Right)
 {
-    UE_LOG(LogTemp, Warning, TEXT("Entered AttitudeSolveFunction"));
     if (Left == Right)
     {
         return ETeamAttitude::Friendly;

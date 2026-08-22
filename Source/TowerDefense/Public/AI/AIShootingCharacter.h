@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AI/TowerDefenseAICharacter.h"
+#include "DefenderCharacter.h"
 #include "Interfaces/ShooterInterface.h"
 #include "AIShootingCharacter.generated.h"
 
@@ -11,15 +11,15 @@
  * 
  */
 UCLASS()
-class TOWERDEFENSE_API AAIShootingCharacter : public ATowerDefenseAICharacter, public IShooterInterface
+class TOWERDEFENSE_API AAIShootingCharacter : public ADefenderCharacter, public IShooterInterface
 {
     GENERATED_BODY()
 
 public:
     AAIShootingCharacter();
 
-    virtual AProjectile* ActivateProjectile() override;
-    virtual void LaunchActiveProjectile(const AActor* Target) override;;
+    virtual void ActivateProjectile() override;
+    virtual void LaunchActiveProjectile() override;
 
 protected:
     void OnProjectileHit(AProjectile* Projectile);
@@ -30,9 +30,18 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = Shooting)
     TSubclassOf<AProjectile> ProjectileClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = Shooting)
+    FName TargetBlackboardKey;
+
+    UPROPERTY(EditDefaultsOnly, Category = Shooting)
+    FName SpawnSocketName;
+
+    UPROPERTY(EditDefaultsOnly, Category = Shooting)
+    FRotator ReleaseRotation;
+
     UPROPERTY(VisibleInstanceOnly, Category = Shooting)
     TArray<AProjectile*> ReserveProjectiles;
 
     UPROPERTY(VisibleInstanceOnly, Category = Shooting)
-    TObjectPtr<AProjectile> ActiveProjectile;
+    TWeakObjectPtr<AProjectile> ActiveProjectile;
 };

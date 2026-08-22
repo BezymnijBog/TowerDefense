@@ -46,6 +46,7 @@ Current technical goals include:
 
 Near-term:
 - AI improvements
+- Better camera controls
 
 Future:
 - Siege units

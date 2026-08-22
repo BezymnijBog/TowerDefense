@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "Interfaces/AttackSlotTarget.h"
 #include "Interfaces/DeathInterface.h"
 #include "BaseBuilding.generated.h"
 
@@ -17,7 +18,12 @@ class UProgressBarWidget;
 class UWidgetComponent;
 
 UCLASS()
-class TOWERDEFENSE_API ABaseBuilding : public AActor, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IDeathInterface
+class TOWERDEFENSE_API ABaseBuilding :
+    public AActor,
+    public IAbilitySystemInterface,
+    public IGenericTeamAgentInterface,
+    public IDeathInterface,
+    public IAttackSlotTarget
 {
     GENERATED_BODY()
 
@@ -28,6 +34,8 @@ public:
     virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    virtual TArray<FVector> GetSlotPoints() const override;
 
     virtual bool IsDead() const override;
     virtual void OnDeath() override;
@@ -68,7 +76,17 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
     float TimeBeforeDestroy = 2.f;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
+    float AttackSlotRadius = 34.0f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
+    float AttackSlotHeight = 88.0f;
+
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "BaseBuilding")
+    TArray<FVector> AttackSlots;
+
 private:
+    virtual void InitializeSlots() override;
     void OnDeathTimerElapsed();
 
     FDeathDelegate DeathDelegate;

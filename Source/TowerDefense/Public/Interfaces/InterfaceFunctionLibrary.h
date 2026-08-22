@@ -29,8 +29,8 @@ public:
 
     static UAbilitySystemComponent* GetAbilitySystemComponent(const AActor* Actor);
 
-    static AProjectile* ActivateProjectile(AActor* Actor);
-    static void LaunchActiveProjectile(AActor* Shooter, const AActor* Target);
+    static void ActivateProjectile(AActor* Actor);
+    static void LaunchActiveProjectile(AActor* Shooter);
 
     static bool GetHireInfo(UObject* Object, FHireInfo& Info);
 };

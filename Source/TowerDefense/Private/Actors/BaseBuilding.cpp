@@ -3,6 +3,7 @@
 #include "Actors/BaseBuilding.h"
 
 #include "AbilitySystemComponent.h"
+#include "Algo/ForEach.h"
 #include "Attributes/BuildingAttributeSet.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
@@ -38,6 +39,11 @@ void ABaseBuilding::SetGenericTeamId(const FGenericTeamId& TeamID)
 UAbilitySystemComponent* ABaseBuilding::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
+}
+
+TArray<FVector> ABaseBuilding::GetSlotPoints() const
+{
+    return AttackSlots;
 }
 
 bool ABaseBuilding::IsDead() const
@@ -77,6 +83,7 @@ void ABaseBuilding::OnHealthChanged(const FOnAttributeChangeData& OnAttributeCha
 void ABaseBuilding::BeginPlay()
 {
     Super::BeginPlay();
+    InitializeSlots();
 
     AttributeSet = AbilitySystemComponent->GetSet<UBuildingAttributeSet>();
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBuildingAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
@@ -85,6 +92,35 @@ void ABaseBuilding::BeginPlay()
     {
         HealthWidget->SetPercent(1.f);
     }
+}
+
+void ABaseBuilding::InitializeSlots()
+{
+    const FVector Origin = GetActorLocation();
+    const FVector Forward = GetActorForwardVector();
+    const FVector Right = GetActorRightVector();
+    const FVector VerticalOffset = GetActorUpVector() * AttackSlotHeight;
+    const FVector Extent = HitBox->GetScaledBoxExtent() + FVector::OneVector * AttackSlotRadius;
+
+    const int32 SlotsAlongX = FMath::FloorToInt(Extent.X / AttackSlotRadius);
+    const int32 SlotsAlongY = FMath::FloorToInt(Extent.Y / AttackSlotRadius);
+
+    const double SlotsIntervalX = 2.0 * Extent.X / SlotsAlongX;
+    const double SlotsIntervalY = 2.0 * Extent.Y / SlotsAlongY;
+
+    for (int32 Idx = 0; Idx < SlotsAlongX; ++Idx)
+    {
+        AttackSlots.Emplace(Origin + Right * Extent.Y + Forward * (Extent.X - Idx * SlotsIntervalX) + VerticalOffset);
+        AttackSlots.Emplace(Origin - Right * Extent.Y - Forward * (Extent.X - Idx * SlotsIntervalX) + VerticalOffset);
+    }
+
+    for (int32 Idx = 0; Idx < SlotsAlongY; ++Idx)
+    {
+        AttackSlots.Emplace(Origin - Right * (Extent.Y - Idx * SlotsIntervalY) + Forward * Extent.X + VerticalOffset);
+        AttackSlots.Emplace(Origin + Right * (Extent.Y - Idx * SlotsIntervalY) - Forward * Extent.X + VerticalOffset);
+    }
+
+    Algo::ForEach(AttackSlots, [this](const FVector& Vec) { DrawDebugSphere(GetWorld(), Vec, AttackSlotRadius, 16, FColor::Red, false, 5); });
 }
 
 void ABaseBuilding::OnDeathTimerElapsed()

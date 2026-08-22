@@ -6,9 +6,6 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AnimNotifyState_Projectile.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class TOWERDEFENSE_API UAnimNotifyState_Projectile : public UAnimNotifyState
 {
@@ -21,19 +18,4 @@ public:
                              const FAnimNotifyEventReference& EventReference) override;
 
     virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-protected:
-    UPROPERTY(EditAnywhere, Category=NotifyState)
-    FRotator ReleaseRotation;
-
-    UPROPERTY(EditAnywhere, Category=NotifyState)
-    FName SpawnSocketName;
-
-    UPROPERTY(EditAnywhere, Category=NotifyState)
-    FName TargetBlackboardKey;
-
-    UPROPERTY()
-    TWeakObjectPtr<AActor> ActiveProjectile;
-
-    void LaunchProjectile(const USkeletalMeshComponent* MeshComp);
 };

@@ -20,6 +20,6 @@ class TOWERDEFENSE_API IShooterInterface : public IInterface
     GENERATED_BODY()
 
 public:
-    virtual AProjectile* ActivateProjectile() = 0;
-    virtual void LaunchActiveProjectile(const AActor* Target) = 0;
+    virtual void ActivateProjectile() = 0;
+    virtual void LaunchActiveProjectile() = 0;
 };
