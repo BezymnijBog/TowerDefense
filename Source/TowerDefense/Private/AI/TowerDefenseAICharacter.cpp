@@ -15,7 +15,7 @@
 #include "Utils/BaseUtils.h"
 #include "Widgets/ProgressBarWidget.h"
 
-ATowerDefenseAICharacter::ATowerDefenseAICharacter()
+ATowerDefenseAICharacter::ATowerDefenseAICharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
     PrimaryActorTick.bCanEverTick = true;
 

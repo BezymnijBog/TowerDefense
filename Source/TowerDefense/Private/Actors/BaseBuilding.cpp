@@ -3,8 +3,9 @@
 #include "Actors/BaseBuilding.h"
 
 #include "AbilitySystemComponent.h"
-#include "Algo/ForEach.h"
+#include "AI/AttackSlot.h"
 #include "Attributes/BuildingAttributeSet.h"
+#include "Components/AttackSlotComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -24,6 +25,14 @@ ABaseBuilding::ABaseBuilding()
 
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
     StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+
+    SlotsComponent = CreateDefaultSubobject<UAttackSlotComponent>(TEXT("AttackSlots"));
+}
+
+void ABaseBuilding::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+    SlotsComponent->SetBaseTransform(Transform);
 }
 
 FGenericTeamId ABaseBuilding::GetGenericTeamId() const
@@ -41,9 +50,9 @@ UAbilitySystemComponent* ABaseBuilding::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
-TArray<FVector> ABaseBuilding::GetSlotPoints() const
+TArray<FAttackSlot> ABaseBuilding::GetSlotPoints() const
 {
-    return AttackSlots;
+    return SlotsComponent->GetSlots();
 }
 
 bool ABaseBuilding::IsDead() const
@@ -96,31 +105,31 @@ void ABaseBuilding::BeginPlay()
 
 void ABaseBuilding::InitializeSlots()
 {
-    const FVector Origin = GetActorLocation();
-    const FVector Forward = GetActorForwardVector();
-    const FVector Right = GetActorRightVector();
-    const FVector VerticalOffset = GetActorUpVector() * AttackSlotHeight;
+    const FVector VerticalOffset = FVector::UpVector * AttackSlotHeight;
     const FVector Extent = HitBox->GetScaledBoxExtent() + FVector::OneVector * AttackSlotRadius;
 
     const int32 SlotsAlongX = FMath::FloorToInt(Extent.X / AttackSlotRadius);
     const int32 SlotsAlongY = FMath::FloorToInt(Extent.Y / AttackSlotRadius);
+
+    TArray<FVector> AttackSlots;
+    AttackSlots.Reserve(2 * SlotsAlongX + 2 * SlotsAlongY);
 
     const double SlotsIntervalX = 2.0 * Extent.X / SlotsAlongX;
     const double SlotsIntervalY = 2.0 * Extent.Y / SlotsAlongY;
 
     for (int32 Idx = 0; Idx < SlotsAlongX; ++Idx)
     {
-        AttackSlots.Emplace(Origin + Right * Extent.Y + Forward * (Extent.X - Idx * SlotsIntervalX) + VerticalOffset);
-        AttackSlots.Emplace(Origin - Right * Extent.Y - Forward * (Extent.X - Idx * SlotsIntervalX) + VerticalOffset);
+        AttackSlots.Emplace(FVector::RightVector * Extent.Y + FVector::ForwardVector * (Extent.X - Idx * SlotsIntervalX) + VerticalOffset);
+        AttackSlots.Emplace(-FVector::RightVector * Extent.Y - FVector::ForwardVector * (Extent.X - Idx * SlotsIntervalX) + VerticalOffset);
     }
 
     for (int32 Idx = 0; Idx < SlotsAlongY; ++Idx)
     {
-        AttackSlots.Emplace(Origin - Right * (Extent.Y - Idx * SlotsIntervalY) + Forward * Extent.X + VerticalOffset);
-        AttackSlots.Emplace(Origin + Right * (Extent.Y - Idx * SlotsIntervalY) - Forward * Extent.X + VerticalOffset);
+        AttackSlots.Emplace(-FVector::RightVector * (Extent.Y - Idx * SlotsIntervalY) + FVector::ForwardVector * Extent.X + VerticalOffset);
+        AttackSlots.Emplace(FVector::RightVector * (Extent.Y - Idx * SlotsIntervalY) - FVector::ForwardVector * Extent.X + VerticalOffset);
     }
 
-    Algo::ForEach(AttackSlots, [this](const FVector& Vec) { DrawDebugSphere(GetWorld(), Vec, AttackSlotRadius, 16, FColor::Red, false, 5); });
+    SlotsComponent->InitializeSlotsLocal(AttackSlots);
 }
 
 void ABaseBuilding::OnDeathTimerElapsed()

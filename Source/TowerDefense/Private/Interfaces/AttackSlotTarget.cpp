@@ -2,8 +2,10 @@
 
 #include "Interfaces/AttackSlotTarget.h"
 
+#include "AI/AttackSlot.h"
+
 // Add default functionality here for any IAttackSlotTarget functions that are not pure virtual.
-TArray<FVector> IAttackSlotTarget::GetSlotPoints() const
+TArray<FAttackSlot> IAttackSlotTarget::GetSlotPoints() const
 {
-    return TArray<FVector>();
+    return TArray<FAttackSlot>();
 }

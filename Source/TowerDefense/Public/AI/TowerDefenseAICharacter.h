@@ -31,7 +31,7 @@ class TOWERDEFENSE_API ATowerDefenseAICharacter :
     GENERATED_BODY()
 
 public:
-    ATowerDefenseAICharacter();
+    ATowerDefenseAICharacter(const FObjectInitializer& ObjectInitializer);
 
     virtual FGenericTeamId GetGenericTeamId() const override;
     virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;

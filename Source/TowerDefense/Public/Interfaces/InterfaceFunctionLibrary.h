@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AI/AttackSlot.h"
 #include "DeathInterface.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "InterfaceFunctionLibrary.generated.h"
 
 class AProjectile;
 class UAbilitySystemComponent;
+class UAIPerceptionComponent;
 class UWayComponent;
 
 struct FHireInfo;
@@ -28,6 +30,10 @@ public:
     static UWayComponent* GetWayComponent(const AActor* Actor);
 
     static UAbilitySystemComponent* GetAbilitySystemComponent(const AActor* Actor);
+
+    static UAIPerceptionComponent* GetPerceptionComponent(AActor* Listener);
+
+    static TArray<FAttackSlot> GetAttackSlots(const AActor* Target);
 
     static void ActivateProjectile(AActor* Actor);
     static void LaunchActiveProjectile(AActor* Shooter);

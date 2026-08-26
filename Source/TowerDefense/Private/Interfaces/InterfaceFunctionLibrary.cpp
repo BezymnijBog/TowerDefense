@@ -7,10 +7,12 @@
 #include "Actors/Projectile.h"
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
+#include "Interfaces/AttackSlotTarget.h"
 #include "Interfaces/DeathInterface.h"
 #include "Interfaces/HireElementInterface.h"
 #include "Interfaces/ShooterInterface.h"
 #include "Interfaces/WayInterface.h"
+#include "Perception/AIPerceptionListenerInterface.h"
 
 FDeathDelegate& UInterfaceFunctionLibrary::GetDeathDelegate(AActor* Actor)
 {
@@ -86,6 +88,25 @@ UAbilitySystemComponent* UInterfaceFunctionLibrary::GetAbilitySystemComponent(co
     }
 
     return Actor->GetComponentByClass<UAbilitySystemComponent>();
+}
+
+UAIPerceptionComponent* UInterfaceFunctionLibrary::GetPerceptionComponent(AActor* Listener)
+{
+    if (IAIPerceptionListenerInterface* AsInterface = Cast<IAIPerceptionListenerInterface>(Listener); AsInterface)
+    {
+        return AsInterface->GetPerceptionComponent();
+    }
+
+    return nullptr;
+}
+
+TArray<FAttackSlot> UInterfaceFunctionLibrary::GetAttackSlots(const AActor* Target)
+{
+    if (const IAttackSlotTarget* AsInterface = Cast<IAttackSlotTarget>(Target); AsInterface)
+    {
+        return AsInterface->GetSlotPoints();
+    }
+    return {};
 }
 
 void UInterfaceFunctionLibrary::ActivateProjectile(AActor* Actor)

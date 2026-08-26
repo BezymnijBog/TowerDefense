@@ -6,7 +6,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
-AAIShootingCharacter::AAIShootingCharacter()
+AAIShootingCharacter::AAIShootingCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
     ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
     ProjectileMesh->SetupAttachment(GetMesh(), TEXT("Weapon_Socket_R"));

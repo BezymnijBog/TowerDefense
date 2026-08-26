@@ -16,7 +16,7 @@ class TOWERDEFENSE_API AAIShootingCharacter : public ADefenderCharacter, public 
     GENERATED_BODY()
 
 public:
-    AAIShootingCharacter();
+    AAIShootingCharacter(const FObjectInitializer& ObjectInitializer);
 
     virtual void ActivateProjectile() override;
     virtual void LaunchActiveProjectile() override;

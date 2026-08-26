@@ -12,6 +12,7 @@
 #include "BaseBuilding.generated.h"
 
 class UAIPerceptionStimuliSourceComponent;
+class UAttackSlotComponent;
 class UBoxComponent;
 class UBuildingAttributeSet;
 class UProgressBarWidget;
@@ -30,12 +31,14 @@ class TOWERDEFENSE_API ABaseBuilding :
 public:
     ABaseBuilding();
 
+    virtual void OnConstruction(const FTransform& Transform) override;
+
     virtual FGenericTeamId GetGenericTeamId() const override;
     virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-    virtual TArray<FVector> GetSlotPoints() const override;
+    virtual TArray<FAttackSlot> GetSlotPoints() const override;
 
     virtual bool IsDead() const override;
     virtual void OnDeath() override;
@@ -61,6 +64,9 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UAttackSlotComponent> SlotsComponent;
+
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "BaseBuilding|Abilities")
     TObjectPtr<const UBuildingAttributeSet> AttributeSet;
 
@@ -81,9 +87,6 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
     float AttackSlotHeight = 88.0f;
-
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "BaseBuilding")
-    TArray<FVector> AttackSlots;
 
 private:
     virtual void InitializeSlots() override;
