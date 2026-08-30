@@ -10,6 +10,7 @@
 #include "Components/WidgetComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
+#include "Utils/WorldGridFunctionLibrary.h"
 #include "Widgets/ProgressBarWidget.h"
 
 ABaseBuilding::ABaseBuilding()
@@ -74,6 +75,21 @@ void ABaseBuilding::OnDeath()
 FDeathDelegate& ABaseBuilding::GetDeathDelegate()
 {
     return DeathDelegate;
+}
+
+TArray<FIntVector2> ABaseBuilding::GetAdjacentCells() const
+{
+    return UWorldGridFunctionLibrary::GetAdjacentCells(this, GetComponentsBoundingBox());
+}
+
+TArray<FIntVector2> ABaseBuilding::GetOccupiedCells() const
+{
+    return UWorldGridFunctionLibrary::GetOccupiedCells(this, GetComponentsBoundingBox());
+}
+
+FIntVector2 ABaseBuilding::GetSize() const
+{
+    return CellsSize;
 }
 
 void ABaseBuilding::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)

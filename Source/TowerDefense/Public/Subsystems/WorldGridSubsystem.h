@@ -46,6 +46,7 @@ public:
 private:
     void CacheSettingsFromWorld(const UWorld& InWorld);
     void CreateGrid();
+    void InitializePlacedActors(const UWorld& InWorld);
 
     TWeakObjectPtr<const ATowerDefenseWorldSettings> WorldSettings;
     TMap<FIntVector2, FGridCellInfo> WorldGrid;

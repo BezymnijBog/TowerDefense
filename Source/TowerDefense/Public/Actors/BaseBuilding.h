@@ -8,6 +8,7 @@
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
 #include "Interfaces/AttackSlotTarget.h"
+#include "Interfaces/CellPlacedInterface.h"
 #include "Interfaces/DeathInterface.h"
 #include "BaseBuilding.generated.h"
 
@@ -24,7 +25,8 @@ class TOWERDEFENSE_API ABaseBuilding :
     public IAbilitySystemInterface,
     public IGenericTeamAgentInterface,
     public IDeathInterface,
-    public IAttackSlotTarget
+    public IAttackSlotTarget,
+    public ICellPlacedInterface
 {
     GENERATED_BODY()
 
@@ -43,6 +45,10 @@ public:
     virtual bool IsDead() const override;
     virtual void OnDeath() override;
     virtual FDeathDelegate& GetDeathDelegate() override;
+
+    virtual TArray<FIntVector2> GetAdjacentCells() const override;
+    virtual TArray<FIntVector2> GetOccupiedCells() const override;
+    virtual FIntVector2 GetSize() const override;
 
 protected:
     void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
@@ -87,6 +93,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
     float AttackSlotHeight = 88.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "BaseBuilding")
+    FIntVector2 CellsSize = { 1, 1 };
 
 private:
     virtual void InitializeSlots() override;

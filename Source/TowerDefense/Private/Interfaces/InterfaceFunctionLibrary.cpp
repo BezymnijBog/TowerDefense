@@ -8,6 +8,7 @@
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Interfaces/AttackSlotTarget.h"
+#include "Interfaces/CellPlacedInterface.h"
 #include "Interfaces/DeathInterface.h"
 #include "Interfaces/HireElementInterface.h"
 #include "Interfaces/ShooterInterface.h"
@@ -128,4 +129,34 @@ void UInterfaceFunctionLibrary::LaunchActiveProjectile(AActor* Shooter)
 bool UInterfaceFunctionLibrary::GetHireInfo(UObject* Object, FHireInfo& Info)
 {
     return Object->Implements<UHireElementInterface>() ? Cast<IHireElementInterface>(Object)->GetHireInfo(Info) : false;
+}
+
+TArray<FIntVector2> UInterfaceFunctionLibrary::GetOccupiedCells(const AActor* Actor)
+{
+    if (const ICellPlacedInterface* AsInterface = Cast<ICellPlacedInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetOccupiedCells();
+    }
+
+    return {};
+}
+
+TArray<FIntVector2> UInterfaceFunctionLibrary::GetAdjacentCells(const AActor* Actor)
+{
+    if (const ICellPlacedInterface* AsInterface = Cast<ICellPlacedInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetAdjacentCells();
+    }
+
+    return {};
+}
+
+FIntVector2 UInterfaceFunctionLibrary::GetSize(const AActor* Actor)
+{
+    if (const ICellPlacedInterface* AsInterface = Cast<ICellPlacedInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetSize();
+    }
+
+    return {};
 }

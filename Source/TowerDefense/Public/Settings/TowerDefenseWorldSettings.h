@@ -12,7 +12,8 @@ class TOWERDEFENSE_API ATowerDefenseWorldSettings : public AWorldSettings
     GENERATED_BODY()
 
 public:
-    const FIntVector2& GetGridSize() const;
+    const FVector2D& GetGridStep() const UE_LIFETIMEBOUND;
+    const FIntVector2& GetGridSize() const UE_LIFETIMEBOUND;
     FIntVector2 WorldToGridLocation(const FVector& WorldLocation) const;
     FVector GridToWorldLocation(const FIntVector2& GridLocation) const;
 
@@ -24,5 +25,5 @@ protected:
     FIntVector2 GridSize = { 100, 100 };
 
     UPROPERTY(EditAnywhere, Category = WorldGrid, meta = (MakeEditWidget))
-    double GridStep = 100.;
+    FVector2D GridStep = { 100., 100. };
 };

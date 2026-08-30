@@ -6,6 +6,7 @@
 #include "AI/AttackSlot.h"
 #include "DeathInterface.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "InterfaceFunctionLibrary.generated.h"
 
 class AProjectile;
@@ -39,4 +40,19 @@ public:
     static void LaunchActiveProjectile(AActor* Shooter);
 
     static bool GetHireInfo(UObject* Object, FHireInfo& Info);
+
+    static TArray<FIntVector2> GetOccupiedCells(const AActor* Actor);
+    static TArray<FIntVector2> GetAdjacentCells(const AActor* Actor);
+    static FIntVector2 GetSize(const AActor* Actor);
+
+    template <std::derived_from<UInterface> TInterface>
+    static TArray<AActor*> GetAllActorsWithInterface(const UObject* WorldContext);
 };
+
+template <std::derived_from<UInterface> TInterface>
+TArray<AActor*> UInterfaceFunctionLibrary::GetAllActorsWithInterface(const UObject* WorldContext)
+{
+    TArray<AActor*> Result;
+    UGameplayStatics::GetAllActorsWithInterface(WorldContext, TInterface::StaticClass(), Result);
+    return Result;
+}
