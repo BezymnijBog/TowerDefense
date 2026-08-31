@@ -5,6 +5,7 @@
 #include "AI/AttackSlot.h"
 #include "Components/AttackSlotComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Utils/WorldGridFunctionLibrary.h"
 
 ADefenderCharacter::ADefenderCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -20,6 +21,21 @@ void ADefenderCharacter::OnConstruction(const FTransform& Transform)
 TArray<FAttackSlot> ADefenderCharacter::GetSlotPoints() const
 {
     return SlotsComponent->GetSlots();
+}
+
+TArray<FIntVector2> ADefenderCharacter::GetAdjacentCells() const
+{
+    return UWorldGridFunctionLibrary::GetAdjacentCells(this, GetCapsuleComponent()->Bounds.GetBox());
+}
+
+TArray<FIntVector2> ADefenderCharacter::GetOccupiedCells() const
+{
+    return UWorldGridFunctionLibrary::GetOccupiedCells(this, GetCapsuleComponent()->Bounds.GetBox());
+}
+
+FIntVector2 ADefenderCharacter::GetSize() const
+{
+    return { 1, 1 };
 }
 
 void ADefenderCharacter::BeginPlay()
