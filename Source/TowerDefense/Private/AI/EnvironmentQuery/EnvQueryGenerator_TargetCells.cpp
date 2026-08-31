@@ -1,8 +1,8 @@
 // Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
 
-#include "AI/EnvironmentQuery/EnvQueryGenerator_TargetSlots.h"
+#include "AI/EnvironmentQuery/EnvQueryGenerator_TargetCells.h"
 
-#include "AI/EnvironmentQuery/EnvQueryItemType_AttackSlot.h"
+#include "AI/EnvironmentQuery/EnvQueryItemType_TargetCells.h"
 #include "EnvironmentQuery/Contexts/EnvQueryContext_Querier.h"
 #include "EnvironmentQuery/Items/EnvQueryItemType_Point.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
@@ -10,6 +10,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AIPerceptionListenerInterface.h"
 #include "Perception/AISense.h"
+#include "Subsystems/WorldGridSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "EnvQueryGenerator"
 
@@ -31,33 +32,48 @@ UAIPerceptionComponent* GetPerceptionComponent(AActor* Listener)
 }
 } // namespace
 
-UEnvQueryGenerator_TargetSlots::UEnvQueryGenerator_TargetSlots(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+UEnvQueryGenerator_TargetCells::UEnvQueryGenerator_TargetCells(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-    ItemType = UEnvQueryItemType_Point::StaticClass();
+    ItemType = UEnvQueryItemType_TargetCells::StaticClass();
 
     SearchRadius.DefaultValue = -1.f;
     ListenerContext = UEnvQueryContext_Querier::StaticClass();
 }
 
-void UEnvQueryGenerator_TargetSlots::GenerateItems(FEnvQueryInstance& QueryInstance) const
+void UEnvQueryGenerator_TargetCells::GenerateItems(FEnvQueryInstance& QueryInstance) const
 {
-    QueryInstance.ValueSize = GetDefault<UEnvQueryItemType_AttackSlot>()->GetValueSize();
-    TArray<FAttackSlot> AttackSlots;
+    //QueryInstance.ValueSize = GetDefault<UEnvQueryItemType_TargetCells>()->GetValueSize();
+    TSet<FIntVector2> AttackSlots;
     for (const AActor* const PerceivedActor : GetPerceivedActors(QueryInstance))
     {
-        AttackSlots.Append(UInterfaceFunctionLibrary::GetAttackSlots(PerceivedActor));
+        AttackSlots.Append(UInterfaceFunctionLibrary::GetAdjacentCells(PerceivedActor));
     }
-    QueryInstance.AddItemData<UEnvQueryItemType_AttackSlot>(AttackSlots);
+
+    const UWorld* const World = GetWorld();
+    if (!IsValid(World))
+    {
+        UE_LOG(LogEQS, Error, TEXT("Can't get world subsystem, world is invalid"));
+        return;
+    }
+
+    const UWorldGridSubsystem* const Subsystem = World->GetSubsystem<UWorldGridSubsystem>();
+    for (const FIntVector2& CellCoord : AttackSlots)
+    {
+        if (const FGridCellInfo* const Info = Subsystem->GetCellInfo(CellCoord); Info)
+        {
+            QueryInstance.AddItemData<UEnvQueryItemType_TargetCells>(Info);
+        }
+    }
 }
 
-FText UEnvQueryGenerator_TargetSlots::GetDescriptionTitle() const
+FText UEnvQueryGenerator_TargetCells::GetDescriptionTitle() const
 {
     FFormatNamedArguments Args;
     Args.Add(TEXT("DescribeContext"), UEnvQueryTypes::DescribeContext(ListenerContext));
-    return FText::Format(LOCTEXT("DescriptionGenerateTargetSlots", "Attack slots perceived by {DescribeContext}"), Args);
+    return FText::Format(LOCTEXT("DescriptionGenerateTargetSlots", "Grid cells perceived by {DescribeContext}"), Args);
 }
 
-FText UEnvQueryGenerator_TargetSlots::GetDescriptionDetails() const
+FText UEnvQueryGenerator_TargetCells::GetDescriptionDetails() const
 {
     FFormatNamedArguments Args;
     if (SearchRadius.IsDynamic() == false && SearchRadius.GetValue() <= 0.f)
@@ -87,14 +103,14 @@ FText UEnvQueryGenerator_TargetSlots::GetDescriptionDetails() const
     return FText::Format(LOCTEXT("PerceivedActorsDescription", "radius: {Radius}\nsense: {Sense}"), Args);
 }
 
-TArray<AActor*> UEnvQueryGenerator_TargetSlots::GetListeners(FEnvQueryInstance& QueryInstance) const
+TArray<AActor*> UEnvQueryGenerator_TargetCells::GetListeners(FEnvQueryInstance& QueryInstance) const
 {
     TArray<AActor*> Listeners;
     QueryInstance.PrepareContext(ListenerContext, Listeners);
     return Listeners;
 }
 
-TSet<AActor*> UEnvQueryGenerator_TargetSlots::GetPerceivedActors(FEnvQueryInstance& QueryInstance) const
+TSet<AActor*> UEnvQueryGenerator_TargetCells::GetPerceivedActors(FEnvQueryInstance& QueryInstance) const
 {
     const UObject* QueryOwner = QueryInstance.Owner.Get();
     if (!IsValid(QueryOwner))

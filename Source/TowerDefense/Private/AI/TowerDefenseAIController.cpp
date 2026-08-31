@@ -3,16 +3,19 @@
 #include "AI/TowerDefenseAIController.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AI/EnvironmentQuery/EnvQueryItemType_TargetCells.h"
 #include "AI/TowerDefenseAICharacter.h"
 #include "Algo/RemoveIf.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/WayComponent.h"
+#include "EnvironmentQuery/EnvQuery.h"
+#include "EnvironmentQuery/EnvQueryManager.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISense_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AISense_Sight.h"
 
 ATowerDefenseAIController::ATowerDefenseAIController()
 {
@@ -127,12 +130,20 @@ bool ATowerDefenseAIController::IsBeingBeaten() const
     return !DamagingActors.IsEmpty();
 }
 
+void ATowerDefenseAIController::OnQueryComplete(TSharedPtr<FEnvQueryResult, ESPMode::ThreadSafe> EnvQueryResult)
+{
+    //const FAttackSlot& Slot = EnvQueryResult->GetItemAsTypeChecked<UEnvQueryItemType_TargetCells>(0);
+    //Slot.
+}
+
 void ATowerDefenseAIController::SelectNextTarget()
 {
-    if (HasValidTarget())
+    if (HasValidTarget() || !IsValid(SearchSlotQuery))
     {
         return;
     }
+    FEnvQueryRequest Request(SearchSlotQuery, this);
+    Request.Execute(EEnvQueryRunMode::RandomBest25Pct, this, &ThisClass::OnQueryComplete);
 
     RemoveCurrentAttackTarget();
     if (AActor* const Target = GetClosestSensedActor(); IsValid(Target))

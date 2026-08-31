@@ -7,7 +7,6 @@
 #include "GameFramework/Actor.h"
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
-#include "Interfaces/AttackSlotTarget.h"
 #include "Interfaces/CellPlacedInterface.h"
 #include "Interfaces/DeathInterface.h"
 #include "BaseBuilding.generated.h"
@@ -25,7 +24,6 @@ class TOWERDEFENSE_API ABaseBuilding :
     public IAbilitySystemInterface,
     public IGenericTeamAgentInterface,
     public IDeathInterface,
-    public IAttackSlotTarget,
     public ICellPlacedInterface
 {
     GENERATED_BODY()
@@ -33,21 +31,17 @@ class TOWERDEFENSE_API ABaseBuilding :
 public:
     ABaseBuilding();
 
-    virtual void OnConstruction(const FTransform& Transform) override;
-
     virtual FGenericTeamId GetGenericTeamId() const override;
     virtual void SetGenericTeamId(const FGenericTeamId& TeamID) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-    virtual TArray<FAttackSlot> GetSlotPoints() const override;
-
     virtual bool IsDead() const override;
     virtual void OnDeath() override;
     virtual FDeathDelegate& GetDeathDelegate() override;
 
-    virtual TArray<FIntVector2> GetAdjacentCells() const override;
-    virtual TArray<FIntVector2> GetOccupiedCells() const override;
+    virtual const TArray<FIntVector2>& GetAdjacentCells() const override;
+    virtual const TArray<FIntVector2>& GetOccupiedCells() const override;
     virtual FIntVector2 GetSize() const override;
 
 protected:
@@ -70,9 +64,6 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
-    TObjectPtr<UAttackSlotComponent> SlotsComponent;
-
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "BaseBuilding|Abilities")
     TObjectPtr<const UBuildingAttributeSet> AttributeSet;
 
@@ -94,11 +85,16 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
     float AttackSlotHeight = 88.0f;
 
+    UPROPERTY(VisibleInstanceOnly, Category = "BaseBuilding")
+    TArray<FIntVector2> OccupiedCells;
+
+    UPROPERTY(VisibleInstanceOnly, Category = "BaseBuilding")
+    TArray<FIntVector2> AdjacentCells;
+
     UPROPERTY(EditDefaultsOnly, Category = "BaseBuilding")
     FIntVector2 CellsSize = { 1, 1 };
 
 private:
-    virtual void InitializeSlots() override;
     void OnDeathTimerElapsed();
 
     FDeathDelegate DeathDelegate;

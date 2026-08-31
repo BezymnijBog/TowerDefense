@@ -4,33 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "AI/TowerDefenseAICharacter.h"
-#include "Interfaces/AttackSlotTarget.h"
 #include "Interfaces/CellPlacedInterface.h"
 #include "DefenderCharacter.generated.h"
 
 class UAttackSlotComponent;
 
 UCLASS()
-class TOWERDEFENSE_API ADefenderCharacter : public ATowerDefenseAICharacter, public IAttackSlotTarget, public ICellPlacedInterface
+class TOWERDEFENSE_API ADefenderCharacter : public ATowerDefenseAICharacter, public ICellPlacedInterface
 {
     GENERATED_BODY()
 
 public:
-    explicit ADefenderCharacter(const FObjectInitializer& ObjectInitializer);
+    virtual void OnDeath() override;
 
-    virtual void OnConstruction(const FTransform& Transform) override;
-    virtual TArray<FAttackSlot> GetSlotPoints() const override;
-
-    virtual TArray<FIntVector2> GetAdjacentCells() const override;
-    virtual TArray<FIntVector2> GetOccupiedCells() const override;
+    virtual const TArray<FIntVector2>& GetAdjacentCells() const override;
+    virtual const TArray<FIntVector2>& GetOccupiedCells() const override;
     virtual FIntVector2 GetSize() const override;
 
 protected:
     virtual void BeginPlay() override;
 
-    UPROPERTY(VisibleAnywhere, Category = Components)
-    TObjectPtr<UAttackSlotComponent> SlotsComponent;
+    UPROPERTY(VisibleInstanceOnly, Category=Defender)
+    TArray<FIntVector2> OccupiedCells;
 
-private:
-    virtual void InitializeSlots() override;
+    UPROPERTY(VisibleInstanceOnly, Category=Defender)
+    TArray<FIntVector2> AdjacentCells;
 };

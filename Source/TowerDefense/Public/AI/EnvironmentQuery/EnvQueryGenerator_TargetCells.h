@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "DataProviders/AIDataProvider.h"
 #include "EnvironmentQuery/EnvQueryGenerator.h"
-#include "EnvQueryGenerator_TargetSlots.generated.h"
+#include "EnvQueryGenerator_TargetCells.generated.h"
 
 class UAISense;
 
@@ -14,12 +14,12 @@ class UAISense;
  * Similar to UEnvQueryGenerator_PerceivedActors, but gathers result IAttackSlotTarget::GetSlotPoints
  */
 UCLASS()
-class TOWERDEFENSE_API UEnvQueryGenerator_TargetSlots : public UEnvQueryGenerator
+class TOWERDEFENSE_API UEnvQueryGenerator_TargetCells : public UEnvQueryGenerator
 {
     GENERATED_BODY()
 
 public:
-    explicit UEnvQueryGenerator_TargetSlots(const FObjectInitializer& ObjectInitializer);
+    explicit UEnvQueryGenerator_TargetCells(const FObjectInitializer& ObjectInitializer);
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category = Generator)

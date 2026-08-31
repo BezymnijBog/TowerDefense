@@ -18,7 +18,7 @@ class TOWERDEFENSE_API ICellPlacedInterface : public IInterface
     GENERATED_BODY()
 
 public:
-    virtual TArray<FIntVector2> GetOccupiedCells() const = 0;
-    virtual TArray<FIntVector2> GetAdjacentCells() const = 0;
+    virtual const TArray<FIntVector2>& GetOccupiedCells() const = 0;
+    virtual const TArray<FIntVector2>& GetAdjacentCells() const = 0;
     virtual FIntVector2 GetSize() const = 0;
 };

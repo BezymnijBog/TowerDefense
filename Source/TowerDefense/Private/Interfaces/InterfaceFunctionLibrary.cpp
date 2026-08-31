@@ -7,7 +7,6 @@
 #include "Actors/Projectile.h"
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
-#include "Interfaces/AttackSlotTarget.h"
 #include "Interfaces/CellPlacedInterface.h"
 #include "Interfaces/DeathInterface.h"
 #include "Interfaces/HireElementInterface.h"
@@ -99,15 +98,6 @@ UAIPerceptionComponent* UInterfaceFunctionLibrary::GetPerceptionComponent(AActor
     }
 
     return nullptr;
-}
-
-TArray<FAttackSlot> UInterfaceFunctionLibrary::GetAttackSlots(const AActor* Target)
-{
-    if (const IAttackSlotTarget* AsInterface = Cast<IAttackSlotTarget>(Target); AsInterface)
-    {
-        return AsInterface->GetSlotPoints();
-    }
-    return {};
 }
 
 void UInterfaceFunctionLibrary::ActivateProjectile(AActor* Actor)

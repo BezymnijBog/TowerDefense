@@ -2,35 +2,24 @@
 
 #include "AI/DefenderCharacter.h"
 
-#include "AI/AttackSlot.h"
-#include "Components/AttackSlotComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Subsystems/WorldGridSubsystem.h"
 #include "Utils/WorldGridFunctionLibrary.h"
 
-ADefenderCharacter::ADefenderCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+void ADefenderCharacter::OnDeath()
 {
-    SlotsComponent = CreateDefaultSubobject<UAttackSlotComponent>(TEXT("AttackSlots"));
+    Super::OnDeath();
+    GetWorld()->GetSubsystem<UWorldGridSubsystem>()->UnRegisterActor(this);
 }
 
-void ADefenderCharacter::OnConstruction(const FTransform& Transform)
+const TArray<FIntVector2>& ADefenderCharacter::GetAdjacentCells() const
 {
-    Super::OnConstruction(Transform);
-    SlotsComponent->SetBaseTransform(Transform);
+    return AdjacentCells;
 }
 
-TArray<FAttackSlot> ADefenderCharacter::GetSlotPoints() const
+const TArray<FIntVector2>& ADefenderCharacter::GetOccupiedCells() const
 {
-    return SlotsComponent->GetSlots();
-}
-
-TArray<FIntVector2> ADefenderCharacter::GetAdjacentCells() const
-{
-    return UWorldGridFunctionLibrary::GetAdjacentCells(this, GetCapsuleComponent()->Bounds.GetBox());
-}
-
-TArray<FIntVector2> ADefenderCharacter::GetOccupiedCells() const
-{
-    return UWorldGridFunctionLibrary::GetOccupiedCells(this, GetCapsuleComponent()->Bounds.GetBox());
+    return OccupiedCells;
 }
 
 FIntVector2 ADefenderCharacter::GetSize() const
@@ -41,25 +30,7 @@ FIntVector2 ADefenderCharacter::GetSize() const
 void ADefenderCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    InitializeSlots();
-}
-
-void ADefenderCharacter::InitializeSlots()
-{
-    static constexpr int32 SlotsNum = 8;
-    static constexpr double DeltaAngle = DOUBLE_TWO_PI / SlotsNum;
-
-    const float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
-    const float Radius = FMath::CeilToFloat(CapsuleRadius * FMath::Sqrt(2.f / (1.f - FMath::Cos(DeltaAngle))));
-    TArray<FVector> SlotPoints;
-    SlotPoints.Reserve(SlotsNum);
-
-    for (int32 Idx = 0; Idx < SlotsNum; ++Idx)
-    {
-        double SinAngle;
-        double CosAngle;
-        FMath::SinCos(&SinAngle, &CosAngle, DeltaAngle * Idx);
-        SlotPoints.Emplace(Radius * (FVector::ForwardVector * CosAngle + FVector::RightVector * SinAngle));
-    }
-    SlotsComponent->InitializeSlotsLocal(SlotPoints);
+    AdjacentCells = UWorldGridFunctionLibrary::GetAdjacentCells(this, GetCapsuleComponent()->Bounds.GetBox());
+    OccupiedCells = UWorldGridFunctionLibrary::GetOccupiedCells(this, GetCapsuleComponent()->Bounds.GetBox());
+    GetWorld()->GetSubsystem<UWorldGridSubsystem>()->RegisterActor(this);
 }

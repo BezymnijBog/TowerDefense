@@ -15,7 +15,52 @@ void UWorldGridSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     Super::OnWorldBeginPlay(InWorld);
     CacheSettingsFromWorld(InWorld);
     CreateGrid();
-    InitializePlacedActors(InWorld);
+}
+
+void UWorldGridSubsystem::RegisterActor(AActor* Actor)
+{
+    if (!Actor->Implements<UCellPlacedInterface>())
+    {
+        return;
+    }
+
+    for (const TArray<FIntVector2> OccupiedCells = UInterfaceFunctionLibrary::GetOccupiedCells(Actor); const FIntVector2& OccupiedCell : OccupiedCells)
+    {
+        FGridCellInfo& Cell = WorldGrid.FindChecked(OccupiedCell);
+        check(!Cell.Occupant.IsValid());
+        Cell.Occupant = Actor;
+    }
+    for (const TArray<FIntVector2> AdjacentCells = UInterfaceFunctionLibrary::GetAdjacentCells(Actor); const FIntVector2& AdjacentCell : AdjacentCells)
+    {
+        if (FGridCellInfo* const Cell = WorldGrid.Find(AdjacentCell); Cell)
+        {
+            Cell->PossibleTargets.Emplace(Actor);
+            FColor Color = Cell->Occupant.IsValid() ? FColor::Blue : FColor::Green;
+            DrawDebugSphere(GetWorld(), Cell->WorldCoordinate, 40.f, 16, Color, false, 5.f);
+        }
+    }
+}
+
+void UWorldGridSubsystem::UnRegisterActor(AActor* Actor)
+{
+    if (!Actor->Implements<UCellPlacedInterface>())
+    {
+        return;
+    }
+
+    for (const TArray<FIntVector2> OccupiedCells = UInterfaceFunctionLibrary::GetOccupiedCells(Actor); const FIntVector2& OccupiedCell : OccupiedCells)
+    {
+        FGridCellInfo& Cell = WorldGrid.FindChecked(OccupiedCell);
+        check(Cell.Occupant.IsValid());
+        Cell.Occupant = nullptr;
+    }
+    for (const TArray<FIntVector2> AdjacentCells = UInterfaceFunctionLibrary::GetAdjacentCells(Actor); const FIntVector2& AdjacentCell : AdjacentCells)
+    {
+        if (FGridCellInfo* const Cell = WorldGrid.Find(AdjacentCell); Cell)
+        {
+            Cell->PossibleTargets.Remove(Actor);
+        }
+    }
 }
 
 FIntVector2 UWorldGridSubsystem::ClosestGridCell(const FVector& Location) const
@@ -31,6 +76,11 @@ const FVector& UWorldGridSubsystem::ClosestGridCellLocation(const FVector& Locat
         return GridCell->WorldCoordinate;
     }
     return FVector::ZeroVector;
+}
+
+const FGridCellInfo* UWorldGridSubsystem::GetCellInfo(const FIntVector2& CellCoordinate) const
+{
+    return WorldGrid.Find(CellCoordinate);
 }
 
 void UWorldGridSubsystem::CacheSettingsFromWorld(const UWorld& InWorld)
@@ -50,27 +100,6 @@ void UWorldGridSubsystem::CreateGrid()
             const FIntVector2 Coordinate(IdX, IdY);
             const FVector WorldLoc = WorldSettings->GridToWorldLocation(Coordinate);
             WorldGrid.Emplace(Coordinate, { Coordinate, WorldLoc });
-        }
-    }
-}
-
-void UWorldGridSubsystem::InitializePlacedActors(const UWorld& InWorld)
-{
-    for (const TArray<AActor*> Actors = UInterfaceFunctionLibrary::GetAllActorsWithInterface<UCellPlacedInterface>(&InWorld); AActor* const Actor : Actors)
-    {
-        for (const TArray<FIntVector2> OccupiedCells = UInterfaceFunctionLibrary::GetOccupiedCells(Actor); const FIntVector2& OccupiedCell : OccupiedCells)
-        {
-            FGridCellInfo& Cell = WorldGrid.FindChecked(OccupiedCell);
-            check(!Cell.Occupant.IsValid());
-            Cell.Occupant = Actor;
-        }
-        for (const TArray<FIntVector2> AdjacentCells = UInterfaceFunctionLibrary::GetAdjacentCells(Actor); const FIntVector2& AdjacentCell : AdjacentCells)
-        {
-            if (FGridCellInfo* const Cell = WorldGrid.Find(AdjacentCell); Cell)
-            {
-                Cell->PossibleTargets.Emplace(Actor);
-                DrawDebugSphere(&InWorld, Cell->WorldCoordinate, 40.f, 16, FColor::Red, false, 5.f);
-            }
         }
     }
 }

@@ -10,6 +10,9 @@
 
 class ATowerDefenseAICharacter;
 class UAISense;
+class UEnvQuery;
+
+struct FEnvQueryResult;
 
 USTRUCT()
 struct FBlackboardKeys
@@ -50,19 +53,23 @@ public:
 protected:
     virtual void OnPossess(APawn* InPawn) override;
 
-    UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
+    UPROPERTY(EditDefaultsOnly, Category = "AIController")
     TObjectPtr<UBehaviorTree> BehaviorTree;
 
-    UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
+    UPROPERTY(EditDefaultsOnly, Category = "AIController")
+    TObjectPtr<UEnvQuery> SearchSlotQuery;
+
+    UPROPERTY(EditDefaultsOnly, Category = "AIController")
     FBlackboardKeys BlackboardKeys;
 
-    UPROPERTY(VisibleInstanceOnly, Category = "AICharacter")
+    UPROPERTY(VisibleInstanceOnly, Category = "AIController")
     bool bIsOffensive = false;
 
     FDelegateHandle TargetDeathHandle;
 
 private:
     bool IsBeingBeaten() const;
+    void OnQueryComplete(TSharedPtr<FEnvQueryResult, ESPMode::ThreadSafe> EnvQueryResult);
     void SelectNextTarget();
 
     void RemoveCurrentAttackTarget();

@@ -40,13 +40,17 @@ class TOWERDEFENSE_API UWorldGridSubsystem : public UWorldSubsystem
 public:
     virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
+    void RegisterActor(AActor* Actor);
+    void UnRegisterActor(AActor* Actor);
+
     FIntVector2 ClosestGridCell(const FVector& Location) const;
     const FVector& ClosestGridCellLocation(const FVector& Location) const;
+
+    const FGridCellInfo* GetCellInfo(const FIntVector2& CellCoordinate) const;
 
 private:
     void CacheSettingsFromWorld(const UWorld& InWorld);
     void CreateGrid();
-    void InitializePlacedActors(const UWorld& InWorld);
 
     TWeakObjectPtr<const ATowerDefenseWorldSettings> WorldSettings;
     TMap<FIntVector2, FGridCellInfo> WorldGrid;
