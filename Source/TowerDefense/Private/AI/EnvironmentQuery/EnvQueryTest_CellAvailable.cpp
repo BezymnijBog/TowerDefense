@@ -40,7 +40,7 @@ void UEnvQueryTest_CellAvailable::RunTest(FEnvQueryInstance& QueryInstance) cons
     for (FEnvQueryInstance::ItemIterator It(this, QueryInstance); It; ++It)
     {
         const FGridCellInfo* const GridCell = GetItemSlot(QueryInstance, It.GetIndex());
-        if (const bool bIsAvailable = !GridCell->ReservedBy.IsValid() && !GridCell->Occupant.IsValid(); bIsAvailable)
+        if (const bool bIsAvailable = GridCell->IsAvailable(); bIsAvailable)
         {
             It.SetScore(TestPurpose, FilterType, bIsAvailable, bWantsValid);
         }

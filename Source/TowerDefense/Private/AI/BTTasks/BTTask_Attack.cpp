@@ -13,5 +13,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
     {
         return EBTNodeResult::Failed;
     }
-    return AbilityComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(Action_Attack_Make)) ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
+
+    AbilityComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(Action_Attack_Make));
+    return EBTNodeResult::Succeeded;
 }

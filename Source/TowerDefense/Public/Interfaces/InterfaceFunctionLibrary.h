@@ -37,7 +37,7 @@ public:
 
     static bool GetHireInfo(UObject* Object, FHireInfo& Info);
 
-    static TArray<FIntVector2> GetOccupiedCells(const AActor* Actor);
-    static TArray<FIntVector2> GetAdjacentCells(const AActor* Actor);
+    static const TArray<FIntVector2>& GetOccupiedCells(const AActor* Actor);
+    static const TArray<FIntVector2>& GetAdjacentCells(const AActor* Actor);
     static FIntVector2 GetSize(const AActor* Actor);
 };

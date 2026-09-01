@@ -42,4 +42,5 @@ protected:
 private:
     TArray<AActor*> GetListeners(FEnvQueryInstance& QueryInstance) const;
     TSet<AActor*> GetPerceivedActors(FEnvQueryInstance& QueryInstance) const;
+    bool IsValidPerceivedActor(const AActor* Actor) const;
 };

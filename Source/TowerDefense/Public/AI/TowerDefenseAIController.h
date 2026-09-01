@@ -38,7 +38,6 @@ public:
     ATowerDefenseAIController();
 
     virtual void ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors) override;
-    virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -48,16 +47,12 @@ public:
 
     AActor* GetClosestSensedActor() const;
 
-    FVector SelectNextPatrolPoint();
-
 protected:
     virtual void OnPossess(APawn* InPawn) override;
+    virtual void SelectNextTarget();
 
     UPROPERTY(EditDefaultsOnly, Category = "AIController")
     TObjectPtr<UBehaviorTree> BehaviorTree;
-
-    UPROPERTY(EditDefaultsOnly, Category = "AIController")
-    TObjectPtr<UEnvQuery> SearchSlotQuery;
 
     UPROPERTY(EditDefaultsOnly, Category = "AIController")
     FBlackboardKeys BlackboardKeys;
@@ -67,12 +62,9 @@ protected:
 
     FDelegateHandle TargetDeathHandle;
 
-private:
     bool IsBeingBeaten() const;
-    void OnQueryComplete(TSharedPtr<FEnvQueryResult, ESPMode::ThreadSafe> EnvQueryResult);
-    void SelectNextTarget();
-
     void RemoveCurrentAttackTarget();
     void SetCurrentAttackTarget(AActor* NewTarget);
     bool HasValidTarget() const;
+    AActor* GetCurrentTarget() const;
 };

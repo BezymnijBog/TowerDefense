@@ -121,24 +121,26 @@ bool UInterfaceFunctionLibrary::GetHireInfo(UObject* Object, FHireInfo& Info)
     return Object->Implements<UHireElementInterface>() ? Cast<IHireElementInterface>(Object)->GetHireInfo(Info) : false;
 }
 
-TArray<FIntVector2> UInterfaceFunctionLibrary::GetOccupiedCells(const AActor* Actor)
+const TArray<FIntVector2>& UInterfaceFunctionLibrary::GetOccupiedCells(const AActor* Actor)
 {
     if (const ICellPlacedInterface* AsInterface = Cast<ICellPlacedInterface>(Actor); AsInterface)
     {
         return AsInterface->GetOccupiedCells();
     }
 
-    return {};
+    static const TArray<FIntVector2> EmptyArray;
+    return EmptyArray;
 }
 
-TArray<FIntVector2> UInterfaceFunctionLibrary::GetAdjacentCells(const AActor* Actor)
+const TArray<FIntVector2>& UInterfaceFunctionLibrary::GetAdjacentCells(const AActor* Actor)
 {
     if (const ICellPlacedInterface* AsInterface = Cast<ICellPlacedInterface>(Actor); AsInterface)
     {
         return AsInterface->GetAdjacentCells();
     }
 
-    return {};
+    static const TArray<FIntVector2> EmptyArray;
+    return EmptyArray;
 }
 
 FIntVector2 UInterfaceFunctionLibrary::GetSize(const AActor* Actor)

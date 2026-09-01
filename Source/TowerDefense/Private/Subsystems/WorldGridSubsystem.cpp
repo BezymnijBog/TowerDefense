@@ -10,6 +10,27 @@ FGridCellInfo::FGridCellInfo(const FIntVector2& GridCoordinate, const FVector& W
     GridCoordinate(GridCoordinate), WorldCoordinate(WorldCoordinate)
 {}
 
+bool FGridCellInfo::IsAvailable() const
+{
+    return !Occupant.IsValid() && !ReservedBy.IsValid();
+}
+
+bool FGridCellInfo::TryReserveCell(AActor* Reserving)
+{
+    if (ReservedBy.IsValid() || !IsValid(Reserving))
+    {
+        return false;
+    }
+
+    ReservedBy = Reserving;
+    return true;
+}
+
+void FGridCellInfo::FreeCell()
+{
+    ReservedBy = nullptr;
+}
+
 void UWorldGridSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
@@ -48,13 +69,11 @@ void UWorldGridSubsystem::UnRegisterActor(AActor* Actor)
         return;
     }
 
-    for (const TArray<FIntVector2> OccupiedCells = UInterfaceFunctionLibrary::GetOccupiedCells(Actor); const FIntVector2& OccupiedCell : OccupiedCells)
+    for (const FIntVector2& OccupiedCell : UInterfaceFunctionLibrary::GetOccupiedCells(Actor))
     {
-        FGridCellInfo& Cell = WorldGrid.FindChecked(OccupiedCell);
-        check(Cell.Occupant.IsValid());
-        Cell.Occupant = nullptr;
+        WorldGrid.FindChecked(OccupiedCell).Occupant = nullptr;
     }
-    for (const TArray<FIntVector2> AdjacentCells = UInterfaceFunctionLibrary::GetAdjacentCells(Actor); const FIntVector2& AdjacentCell : AdjacentCells)
+    for (const FIntVector2& AdjacentCell : UInterfaceFunctionLibrary::GetAdjacentCells(Actor))
     {
         if (FGridCellInfo* const Cell = WorldGrid.Find(AdjacentCell); Cell)
         {
@@ -81,6 +100,24 @@ const FVector& UWorldGridSubsystem::ClosestGridCellLocation(const FVector& Locat
 const FGridCellInfo* UWorldGridSubsystem::GetCellInfo(const FIntVector2& CellCoordinate) const
 {
     return WorldGrid.Find(CellCoordinate);
+}
+
+bool UWorldGridSubsystem::TryReserveCell(const FGridCellInfo* CellInfo, AActor* ReserveBy)
+{
+    if (!CellInfo)
+    {
+        return false;
+    }
+
+    return WorldGrid.FindChecked(CellInfo->GridCoordinate).TryReserveCell(ReserveBy);
+}
+
+void UWorldGridSubsystem::FreeCell(const FGridCellInfo* CellInfo)
+{
+    if (CellInfo)
+    {
+        WorldGrid.FindChecked(CellInfo->GridCoordinate).FreeCell();
+    }
 }
 
 void UWorldGridSubsystem::CacheSettingsFromWorld(const UWorld& InWorld)

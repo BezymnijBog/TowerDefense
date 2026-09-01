@@ -144,8 +144,8 @@ TSet<AActor*> UEnvQueryGenerator_TargetCells::GetPerceivedActors(FEnvQueryInstan
 
         for (AActor* const PerceivedActor : LocalPerceivedActors)
         {
-            if (PerceivedActor && (RadiusValue <= 0 || FVector::DistSquared(ListenerLocation, PerceivedActor->GetActorLocation()) < RadiusSq)
-                && (!AllowedActorClass || PerceivedActor->IsA(AllowedActorClass.Get())))
+            if (IsValidPerceivedActor(PerceivedActor)
+                && (RadiusValue <= 0 || FVector::DistSquared(ListenerLocation, PerceivedActor->GetActorLocation()) < RadiusSq))
             {
                 Result.Add(PerceivedActor);
             }
@@ -153,6 +153,11 @@ TSet<AActor*> UEnvQueryGenerator_TargetCells::GetPerceivedActors(FEnvQueryInstan
     }
 
     return Result;
+}
+
+bool UEnvQueryGenerator_TargetCells::IsValidPerceivedActor(const AActor* Actor) const
+{
+    return IsValid(Actor) && (!AllowedActorClass || Actor->IsA(AllowedActorClass.Get())) && !UInterfaceFunctionLibrary::IsActorDead(Actor);
 }
 
 #undef LOCTEXT_NAMESPACE

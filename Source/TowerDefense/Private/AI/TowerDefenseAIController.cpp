@@ -3,16 +3,11 @@
 #include "AI/TowerDefenseAIController.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
-#include "AI/EnvironmentQuery/EnvQueryItemType_TargetCells.h"
 #include "AI/TowerDefenseAICharacter.h"
 #include "Algo/RemoveIf.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Components/WayComponent.h"
-#include "EnvironmentQuery/EnvQuery.h"
-#include "EnvironmentQuery/EnvQueryManager.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
-#include "Navigation/PathFollowingComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "Perception/AISense_Sight.h"
@@ -25,15 +20,9 @@ ATowerDefenseAIController::ATowerDefenseAIController()
 void ATowerDefenseAIController::ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
     Super::ActorsPerceptionUpdated(UpdatedActors);
-    SelectNextTarget();
-}
-
-void ATowerDefenseAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-    Super::OnMoveCompleted(RequestID, Result);
-    if (!Result.IsSuccess())
+    if (const AActor* Target = GetCurrentTarget(); IsValid(Target) && !UpdatedActors.Contains(Target))
     {
-        return;
+        RemoveCurrentAttackTarget();
     }
     SelectNextTarget();
 }
@@ -91,23 +80,6 @@ AActor* ATowerDefenseAIController::GetClosestSensedActor() const
         *Algo::MinElementBy(VisibleActors, [&PawnLocation](const AActor* Actor) { return (Actor->GetActorLocation() - PawnLocation).SquaredLength(); });
 }
 
-FVector ATowerDefenseAIController::SelectNextPatrolPoint()
-{
-    const UWayComponent* const WayComponent = UInterfaceFunctionLibrary::GetWayComponent(GetPawn());
-    if (!IsValid(WayComponent))
-    {
-        return FVector::ZeroVector;
-    }
-
-    if (bIsOffensive)
-    {
-        bIsOffensive = false;
-        return WayComponent->GetClosestPoint();
-    }
-
-    return WayComponent->GetNextTargetPoint();
-}
-
 void ATowerDefenseAIController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
@@ -117,9 +89,22 @@ void ATowerDefenseAIController::OnPossess(APawn* InPawn)
         RunBehaviorTree(BehaviorTree);
         UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
         BlackboardComponent->SetValueAsFloat(BlackboardKeys.AttackRange, UInterfaceFunctionLibrary::GetAttackRange(InPawn));
-        BlackboardComponent->SetValueAsVector(BlackboardKeys.DestinationPoint, SelectNextPatrolPoint());
         PerceptionComponent->RequestStimuliListenerUpdate();
         SelectNextTarget();
+    }
+}
+
+void ATowerDefenseAIController::SelectNextTarget()
+{
+    if (HasValidTarget())
+    {
+        return;
+    }
+
+    RemoveCurrentAttackTarget();
+    if (AActor* const Target = GetClosestSensedActor(); IsValid(Target))
+    {
+        SetCurrentAttackTarget(Target);
     }
 }
 
@@ -128,32 +113,6 @@ bool ATowerDefenseAIController::IsBeingBeaten() const
     TArray<AActor*> DamagingActors;
     PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Damage::StaticClass(), DamagingActors);
     return !DamagingActors.IsEmpty();
-}
-
-void ATowerDefenseAIController::OnQueryComplete(TSharedPtr<FEnvQueryResult, ESPMode::ThreadSafe> EnvQueryResult)
-{
-    //const FAttackSlot& Slot = EnvQueryResult->GetItemAsTypeChecked<UEnvQueryItemType_TargetCells>(0);
-    //Slot.
-}
-
-void ATowerDefenseAIController::SelectNextTarget()
-{
-    if (HasValidTarget() || !IsValid(SearchSlotQuery))
-    {
-        return;
-    }
-    FEnvQueryRequest Request(SearchSlotQuery, this);
-    Request.Execute(EEnvQueryRunMode::RandomBest25Pct, this, &ThisClass::OnQueryComplete);
-
-    RemoveCurrentAttackTarget();
-    if (AActor* const Target = GetClosestSensedActor(); IsValid(Target))
-    {
-        SetCurrentAttackTarget(Target);
-    }
-    else
-    {
-        GetBlackboardComponent()->SetValueAsVector(BlackboardKeys.DestinationPoint, SelectNextPatrolPoint());
-    }
 }
 
 void ATowerDefenseAIController::RemoveCurrentAttackTarget()
@@ -176,10 +135,15 @@ void ATowerDefenseAIController::SetCurrentAttackTarget(AActor* NewTarget)
 
 bool ATowerDefenseAIController::HasValidTarget() const
 {
-    const UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
-    if (const AActor* const CurrentTarget = Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget)); IsValid(CurrentTarget))
+    if (const AActor* const CurrentTarget = GetCurrentTarget(); IsValid(CurrentTarget))
     {
         return !UInterfaceFunctionLibrary::IsActorDead(CurrentTarget);
     }
     return false;
+}
+
+AActor* ATowerDefenseAIController::GetCurrentTarget() const
+{
+    const UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
+    return Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget));
 }

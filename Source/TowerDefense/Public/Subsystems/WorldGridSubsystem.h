@@ -16,6 +16,10 @@ struct FGridCellInfo
     FGridCellInfo() = default;
     FGridCellInfo(const FIntVector2& GridCoordinate, const FVector& WorldCoordinate);
 
+    bool IsAvailable() const;
+    bool TryReserveCell(AActor* Reserving);
+    void FreeCell();
+
     UPROPERTY(EditAnywhere)
     FIntVector2 GridCoordinate = FIntVector2::ZeroValue;
 
@@ -47,6 +51,9 @@ public:
     const FVector& ClosestGridCellLocation(const FVector& Location) const;
 
     const FGridCellInfo* GetCellInfo(const FIntVector2& CellCoordinate) const;
+
+    bool TryReserveCell(const FGridCellInfo* CellInfo, AActor* ReserveBy);
+    void FreeCell(const FGridCellInfo* CellInfo);
 
 private:
     void CacheSettingsFromWorld(const UWorld& InWorld);
