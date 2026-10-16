@@ -5,6 +5,7 @@
 #include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemComponent.h"
 #include "Actors/PlayerHUD.h"
+#include "Attributes/PlayerAttributeSet.h"
 #include "Components/PlayerAbilitySystemComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
@@ -12,6 +13,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Pawn.h"
 #include "Subsystems/WorldRoadSubsystem.h"
+#include "Subsystems/RunSubsystem.h"
+#include "Utils/BaseUtils.h"
 #include "Widgets/HireMenuElement.h"
 #include "Widgets/PlayerHudWidget.h"
 
@@ -57,11 +60,43 @@ void ATowerDefensePlayerController::SetupInputComponent()
 void ATowerDefensePlayerController::BeginPlay()
 {
     Super::BeginPlay();
-    GetWorld()->GetSubsystem<UWorldRoadSubsystem>()->WaveCleared.AddUObject(this, &ThisClass::OnWaveCleared);
+    if (UWorldRoadSubsystem* Roads = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this); IsValid(Roads))
+    {
+        Roads->WaveCleared.AddUObject(this, &ThisClass::OnWaveCleared);
+    }
+    if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
+    {
+        Run->OnCombatWon.AddUObject(this, &ThisClass::OnCombatWon);
+    }
+}
+
+void ATowerDefensePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
+    {
+        Run->OnCombatWon.RemoveAll(this);
+    }
+    if (UWorldRoadSubsystem* Roads = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this); IsValid(Roads))
+    {
+        Roads->WaveCleared.RemoveAll(this);
+    }
+    Super::EndPlay(EndPlayReason);
+}
+
+void ATowerDefensePlayerController::OnCombatWon(int32 MoneyReward)
+{
+    if (HasAuthority() && IsValid(AbilitySystemComponent))
+    {
+        AbilitySystemComponent->ApplyModToAttribute(UPlayerAttributeSet::GetMoneyAttribute(), EGameplayModOp::Additive, MoneyReward);
+    }
 }
 
 void ATowerDefensePlayerController::StartWave()
 {
+    if (const UWorldRoadSubsystem* Roads = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this); !IsValid(Roads) || !Roads->CanStartWave())
+    {
+        return;
+    }
     if (!AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(Action_Wave_Start)))
     {
         return;
@@ -81,6 +116,7 @@ void ATowerDefensePlayerController::OnWaveCleared()
     {
         const UPlayerHudWidget* const HudWidget = PlayerHUD->GetHUDWidget();
         check(IsValid(HudWidget));
-        HudWidget->ToggleWaveWidgetVisibility(true);
+        const UWorldRoadSubsystem* Roads = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this);
+        HudWidget->ToggleWaveWidgetVisibility(IsValid(Roads) && Roads->CanStartWave());
     }
 }

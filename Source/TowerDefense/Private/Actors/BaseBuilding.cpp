@@ -49,7 +49,12 @@ bool ABaseBuilding::IsDead() const
 
 void ABaseBuilding::OnDeath()
 {
+    if (bIsDead)
+    {
+        return;
+    }
     bIsDead = true;
+    DeathDelegate.Broadcast();
     Mesh->SetStaticMesh(nullptr);
     if (UUserWidget* const Widget = WidgetComponent->GetWidget(); IsValid(Widget))
     {

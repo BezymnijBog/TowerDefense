@@ -42,6 +42,7 @@ bool AWayActor::CanSpawnUnit(const FVector& SpawnLocation) const
 void AWayActor::SetWaveDefinition(FWaveDefinition NewDefinition)
 {
     WaveDefinition = MoveTemp(NewDefinition);
+    PendingSpawns = 0;
     Algo::RandomShuffle(WaveDefinition.SpawnGroup);
     if (FMath::IsNearlyZero(WaveDefinition.WaveStartDelay))
     {
@@ -78,17 +79,24 @@ void AWayActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool AWayActor::HaveAllUnitsSpawned() const
 {
-    return WaveDefinition.SpawnGroup.IsEmpty();
+    return WaveDefinition.SpawnGroup.IsEmpty() && PendingSpawns == 0;
 }
 
 void AWayActor::SetupWave()
 {
+    if (WaveDefinition.SpawnGroup.IsEmpty() || SpawnComponents.IsEmpty())
+    {
+        WaveDefinition.SpawnGroup.Reset();
+        std::ignore = WaveIsOver.ExecuteIfBound();
+        return;
+    }
     const float SpawnInterval = WaveDefinition.WaveDuration * SpawnComponents.Num() / WaveDefinition.SpawnGroup.Num();
     for (UUnitSpawnComponent* SpawnComponent : SpawnComponents)
     {
         SpawnComponent->SetSpawnInterval(SpawnInterval);
         if (!WaveDefinition.SpawnGroup.IsEmpty())
         {
+            ++PendingSpawns;
             SpawnComponent->EnqueueSpawn(WaveDefinition.SpawnGroup.Pop());
         }
     }
@@ -96,7 +104,7 @@ void AWayActor::SetupWave()
 
 void AWayActor::OnUnitStartedSpawn(ATowerDefenseAICharacter* SpawnedUnit, UUnitSpawnComponent* SpawnedComponent)
 {
-
+    PendingSpawns = FMath::Max(0, PendingSpawns - 1);
     if (IsValid(SpawnedUnit))
     {
         SpawnedUnits.Emplace(SpawnedUnit);
@@ -108,7 +116,12 @@ void AWayActor::OnUnitStartedSpawn(ATowerDefenseAICharacter* SpawnedUnit, UUnitS
 
     if (!WaveDefinition.SpawnGroup.IsEmpty())
     {
+        ++PendingSpawns;
         SpawnedComponent->EnqueueSpawn(WaveDefinition.SpawnGroup.Pop());
+    }
+    if (SpawnedUnits.IsEmpty() && HaveAllUnitsSpawned())
+    {
+        std::ignore = WaveIsOver.ExecuteIfBound();
     }
 }
 

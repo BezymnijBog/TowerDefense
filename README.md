@@ -41,6 +41,7 @@ Current technical goals include:
 - Unit recruitment UI
 - Resource economy
 - Wave spawn system
+- Run system
 
 ## Roadmap
 
@@ -66,4 +67,5 @@ This allows me to continuously improve both the gameplay and the underlying code
 
 ## Acknowledgments & Credits
 This project uses the following open-source/free components:
-* [Gold icons created by Prosymbols Premium - Flaticon](https://www.flaticon.com/free-icons/gold)
+* [Gold icons created by Prosymbols Premium - Flaticon](https://www.flaticon.com/free-icons/gold )
+* [Skull icons created by Smashicons - Flaticon](https://www.flaticon.com/free-icons/skull )

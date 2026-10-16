@@ -27,11 +27,16 @@ bool UWorldRoadSubsystem::CanSpawnUnit(const FVector& SpawnPoint) const
     return Algo::AnyOf(RegisteredActors, std::bind(&AWayActor::CanSpawnUnit, std::placeholders::_1, SpawnPoint));
 }
 
-void UWorldRoadSubsystem::StartWave()
+bool UWorldRoadSubsystem::CanStartWave() const
 {
-    if (WavesManager.IsValid())
+    return !bIsWaveInProgress && WavesManager.IsValid() && WavesManager->CanStartWave();
+}
+
+bool UWorldRoadSubsystem::StartWave()
+{
+    if (!CanStartWave())
     {
-        WavesManager->StartWave();
+        return false;
     }
 
     for (TPair<AWayActor*, bool>& Pair : FinishedWaves)
@@ -40,6 +45,12 @@ void UWorldRoadSubsystem::StartWave()
     }
 
     bIsWaveInProgress = true;
+    if (!WavesManager->StartWave())
+    {
+        bIsWaveInProgress = false;
+        return false;
+    }
+    return true;
 }
 
 bool UWorldRoadSubsystem::IsWaveInProgress() const
@@ -56,6 +67,11 @@ void UWorldRoadSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 void UWorldRoadSubsystem::OnSpawnerWaveFinished(AWayActor* WayActor)
 {
+    if (!bIsWaveInProgress)
+    {
+        return;
+    }
+
     check(FinishedWaves.Contains(WayActor));
     FinishedWaves[WayActor] = true;
     if (Algo::AllOf(FinishedWaves, [](const TPair<AWayActor*, bool>& Pair) { return Pair.Value; }))

@@ -20,7 +20,8 @@ public:
     void RegisterActor(AWayActor* WayActor);
     void UnRegisterActor(AWayActor* WayActor);
     bool CanSpawnUnit(const FVector& SpawnPoint) const;
-    void StartWave();
+    bool StartWave();
+    bool CanStartWave() const;
     bool IsWaveInProgress() const;
 
     FWaveCleared WaveCleared;

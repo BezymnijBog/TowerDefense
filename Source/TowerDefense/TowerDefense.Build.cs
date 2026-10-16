@@ -13,6 +13,7 @@ public class TowerDefense : ModuleRules
 			"AIModule",
 			"Core",
 			"CoreUObject",
+			"DeveloperSettings",
 			"GameplayAbilities",
 			"GameplayTags",
 			"Engine",

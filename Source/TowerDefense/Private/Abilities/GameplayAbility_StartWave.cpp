@@ -3,6 +3,7 @@
 #include "Abilities/GameplayAbility_StartWave.h"
 
 #include "Subsystems/WorldRoadSubsystem.h"
+#include "Utils/BaseUtils.h"
 
 void UGameplayAbility_StartWave::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                  const FGameplayAbilityActorInfo* ActorInfo,
@@ -10,9 +11,17 @@ void UGameplayAbility_StartWave::ActivateAbility(const FGameplayAbilitySpecHandl
                                                  const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-    UWorldRoadSubsystem* const WaveSubsystem = GetWorld()->GetSubsystem<UWorldRoadSubsystem>();
-    WaveSubsystem->WaveCleared.AddUObject(this, &ThisClass::OnWaveCleared);
-    WaveSubsystem->StartWave();
+    UWorldRoadSubsystem* const WaveSubsystem = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this);
+    if (!IsValid(WaveSubsystem))
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
+    ThisHandle = WaveSubsystem->WaveCleared.AddUObject(this, &ThisClass::OnWaveCleared);
+    if (!WaveSubsystem->StartWave())
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+    }
 }
 
 void UGameplayAbility_StartWave::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -21,7 +30,10 @@ void UGameplayAbility_StartWave::EndAbility(const FGameplayAbilitySpecHandle Han
     bool bReplicateEndAbility,
     bool bWasCancelled)
 {
-    GetWorld()->GetSubsystem<UWorldRoadSubsystem>()->WaveCleared.Remove(ThisHandle);
+    if (UWorldRoadSubsystem* WaveSubsystem = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this); IsValid(WaveSubsystem))
+    {
+        WaveSubsystem->WaveCleared.Remove(ThisHandle);
+    }
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

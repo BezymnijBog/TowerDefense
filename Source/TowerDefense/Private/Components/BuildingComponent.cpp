@@ -2,6 +2,8 @@
 
 #include "Components/BuildingComponent.h"
 
+#include "TowerDefense.h"
+
 void UBuildingComponent::BeginPlay()
 {
     Super::BeginPlay();
@@ -27,7 +29,7 @@ void UBuildingComponent::OnBeginOverlap(UPrimitiveComponent*, AActor* OtherActor
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("%s overlapped %s; bFromSweep=%d"), *GetOwner()->GetName(), *OtherActor->GetName(), bFromSweep);
+    UE_LOG(LogTowerDefense, Warning, TEXT("%s overlapped %s; bFromSweep=%d"), *GetOwner()->GetName(), *OtherActor->GetName(), bFromSweep);
     OtherBuildingComponent->OverlapComponents.Add(OtherBuildingComponent);
     OtherBuildingComponent->SetCanBuild(OtherBuildingComponent->OverlapComponents.IsEmpty());
 }

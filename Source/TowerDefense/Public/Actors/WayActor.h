@@ -72,4 +72,5 @@ private:
     FTimerHandle WaveTimer;
     TArray<FTimerHandle> SpawnTimers;
     int32 CurrentLaneIdx = 0;
+    int32 PendingSpawns = 0;
 };

@@ -3,6 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/Widget.h"
+#include "Engine/GameInstance.h"
+#include "Subsystems/GameInstanceSubsystem.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "GameplayTagContainer.h"
 #include "GenericTeamAgentInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -77,6 +81,25 @@ T* GetActorOfClass(UObject* WorldContext)
 {
     return Cast<T>(UGameplayStatics::GetActorOfClass(WorldContext, T::StaticClass()));
 }
-} // namespace Utils
 
-// namespace Teams
+template <std::derived_from<UWorldSubsystem> TSubsystem>
+TSubsystem* GetWorldSubsystem(const UObject* WorldContext)
+{
+    const UWorld* World = IsValid(WorldContext) ? WorldContext->GetWorld() : nullptr;
+    return IsValid(World) ? World->GetSubsystem<TSubsystem>() : nullptr;
+}
+
+template <std::derived_from<UGameInstanceSubsystem> TSubsystem>
+TSubsystem* GetGameInstanceSubsystem(const UWidget* GameInstanceContext)
+{
+    const UGameInstance* GameInstance = IsValid(GameInstanceContext) ? GameInstanceContext->GetGameInstance() : nullptr;
+    return IsValid(GameInstance) ? GameInstance->GetSubsystem<TSubsystem>() : nullptr;
+}
+
+template <std::derived_from<UGameInstanceSubsystem> TSubsystem>
+TSubsystem* GetGameInstanceSubsystem(const AActor* GameInstanceContext)
+{
+    const UGameInstance* GameInstance = IsValid(GameInstanceContext) ? GameInstanceContext->GetGameInstance() : nullptr;
+    return IsValid(GameInstance) ? GameInstance->GetSubsystem<TSubsystem>() : nullptr;
+}
+} // namespace Utils

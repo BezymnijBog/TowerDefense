@@ -29,6 +29,7 @@ public:
 protected:
     virtual void SetupInputComponent() override;
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UPlayerAbilitySystemComponent> AbilitySystemComponent;
@@ -48,4 +49,5 @@ protected:
 private:
     void StartWave();
     void OnWaveCleared();
+    void OnCombatWon(int32 MoneyReward);
 };
