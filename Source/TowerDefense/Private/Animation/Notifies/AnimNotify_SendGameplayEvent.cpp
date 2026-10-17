@@ -10,6 +10,11 @@ void UAnimNotify_SendGameplayEvent::Notify(USkeletalMeshComponent* MeshComp, UAn
 {
     Super::Notify(MeshComp, Animation, EventReference);
     AActor* const Instigator = MeshComp->GetOwner();
+    if (!IsValid(Instigator))
+    {
+        return;
+    }
+
     AAIController* const Controller = Instigator->GetInstigatorController<AAIController>();
     if (!IsValid(Controller))
     {

@@ -2,11 +2,13 @@
 
 #include "Abilities/Calculations/UnitsDamageCalculation.h"
 
+#include "Abilities/TowerDefenceTags.h"
 #include "Attributes/AICharacterAttributeSet.h"
+#include "Settings/TowerDefenseSettings.h"
 
 bool IsChanceSucceeded(float Chance)
 {
-    return FMath::FRand() <= Chance;
+    return FMath::FRand() < Chance;
 }
 
 int32 TimesChanceSucceeded(float Chance)
@@ -52,7 +54,12 @@ float UUnitsDamageCalculation::CalculateBaseMagnitude_Implementation(const FGame
         return GetCapturedAttributeMagnitude(Definition, Spec, Parameters, Value) ? Value : Default;
     };
 
-    if (const float BlockChance = GetAttributeMagnitudeWithDefault(BlockChanceDef, 0.f); IsChanceSucceeded(BlockChance))
+    const bool bHasShield = Parameters.TargetTags && Parameters.TargetTags->HasTag(Modifier_Damage_Shield);
+    const bool bTwoHandedAttack = Parameters.SourceTags && Parameters.SourceTags->HasTag(Modifier_Damage_TwoHanded);
+    const bool bProjectileAttack = Parameters.SourceTags && Parameters.SourceTags->HasTag(Modifier_Damage_Pojectile);
+
+    // Shields use deterministic damage reduction. Two-handed attacks bypass both forms of block.
+    if (!bHasShield && !bTwoHandedAttack && IsChanceSucceeded(GetAttributeMagnitudeWithDefault(BlockChanceDef, 0.f)))
     {
         return 0.f; // damage blocked
     }
@@ -60,7 +67,14 @@ float UUnitsDamageCalculation::CalculateBaseMagnitude_Implementation(const FGame
     const float CriticalChance = GetAttributeMagnitudeWithDefault(CriticalChanceDef, 0.f);
     const float BaseDamage = FMath::Abs(GetAttributeMagnitudeWithDefault(DamageDef, 0.f));
     const float Armor = FMath::Abs(GetAttributeMagnitudeWithDefault(ArmorDef, 0.f));
-    return -FMath::Max(BaseDamage * GetDeviationModifier() * (TimesChanceSucceeded(CriticalChance) + 1) - Armor, 0.f);
+    const float DamageAfterArmor = FMath::Max(BaseDamage * GetDeviationModifier() * (TimesChanceSucceeded(CriticalChance) + 1) - Armor, 0.f);
+    float ShieldReduction = 0.f;
+    if (bHasShield && !bTwoHandedAttack)
+    {
+        const UTowerDefenseSettings& Settings = UTowerDefenseSettings::Get();
+        ShieldReduction = FMath::Clamp(bProjectileAttack ? Settings.ShieldProjectileDamageReduction : Settings.ShieldMeleeDamageReduction, 0.f, 1.f);
+    }
+    return -DamageAfterArmor * (1.f - ShieldReduction);
 }
 
 float UUnitsDamageCalculation::GetDeviationModifier() const

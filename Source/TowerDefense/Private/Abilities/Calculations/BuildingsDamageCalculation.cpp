@@ -19,7 +19,7 @@ float UBuildingsDamageCalculation::CalculateBaseMagnitude_Implementation(const F
     Parameters.SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
     Parameters.TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
 
-    const float HeavyDamageFactor = Parameters.SourceTags->HasTag(Action_Damage_Heavy) ? 3.f : 1.f;
+    const float HeavyDamageFactor = Parameters.SourceTags && Parameters.SourceTags->HasTag(Modifier_Damage_Heavy) ? 3.f : 1.f;
     if (float Damage; GetCapturedAttributeMagnitude(DamageDef, Spec, Parameters, Damage))
     {
         return -FMath::Abs(Damage * HeavyDamageFactor);

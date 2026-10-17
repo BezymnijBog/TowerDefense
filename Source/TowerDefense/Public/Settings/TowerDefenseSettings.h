@@ -17,6 +17,12 @@ class TOWERDEFENSE_API UTowerDefenseSettings : public UDeveloperSettings
 public:
     static const UTowerDefenseSettings& Get();
 
+    UPROPERTY(Config, EditDefaultsOnly, Category = "Combat|Shield", meta = (ClampMin = "0", ClampMax = "1"))
+    float ShieldProjectileDamageReduction = 0.8f;
+
+    UPROPERTY(Config, EditDefaultsOnly, Category = "Combat|Shield", meta = (ClampMin = "0", ClampMax = "1"))
+    float ShieldMeleeDamageReduction = 0.4f;
+
     // The final day of each act is reserved for its boss.
     UPROPERTY(Config, EditDefaultsOnly, Category = "Run|Structure", meta = (ClampMin = "1", UIMin = "1"))
     int32 DaysPerAct = 7;
