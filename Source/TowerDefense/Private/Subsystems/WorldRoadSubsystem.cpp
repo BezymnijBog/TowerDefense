@@ -7,6 +7,8 @@
 #include "Algo/AnyOf.h"
 #include "Utils/BaseUtils.h"
 
+#include <functional>
+
 void UWorldRoadSubsystem::RegisterActor(AWayActor* WayActor)
 {
     WavesManager->AddSpawner(WayActor);
