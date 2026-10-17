@@ -27,6 +27,8 @@ protected:
     TObjectPtr<UButton> ExitButton;
 
 private:
+    void OnGameStartFailed();
+
     UFUNCTION()
     void OnNewGameClicked();
 

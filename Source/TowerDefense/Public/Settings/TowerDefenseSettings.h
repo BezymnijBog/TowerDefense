@@ -42,6 +42,12 @@ public:
     UPROPERTY(Config, EditDefaultsOnly, Category = "Run")
     TSoftObjectPtr<UWorld> GameMap;
 
+    UPROPERTY(Config, EditDefaultsOnly, Category = "Menu|Transition", meta = (ClampMin = "0"))
+    float GameFadeOutDuration = 0.6f;
+
+    UPROPERTY(Config, EditDefaultsOnly, Category = "Menu|Transition", meta = (ClampMin = "0"))
+    float GameFadeInDuration = 0.8f;
+
     int32 GetReward(EDayEventType EventType) const;
 
     virtual FName GetCategoryName() const override;

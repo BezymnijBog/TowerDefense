@@ -3,10 +3,8 @@
 #include "Widgets/MainMenu.h"
 #include "Components/Button.h"
 #include "GameFramework/PlayerController.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Misc/PackageName.h"
-#include "Settings/TowerDefenseSettings.h"
+#include "Subsystems/GameStartSubsystem.h"
 #include "Subsystems/RunSubsystem.h"
 #include "Utils/BaseUtils.h"
 
@@ -15,12 +13,22 @@ void UMainMenu::NativeConstruct()
     Super::NativeConstruct();
     bStartingGame = false;
     NewGameButton->SetIsEnabled(true);
+    ExitButton->SetIsEnabled(true);
+    if (UGameStartSubsystem* GameStart = Utils::GetGameInstanceSubsystem<UGameStartSubsystem>(this); IsValid(GameStart))
+    {
+        GameStart->OnGameStartFailed.RemoveAll(this);
+        GameStart->OnGameStartFailed.AddUObject(this, &ThisClass::OnGameStartFailed);
+    }
     NewGameButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OnNewGameClicked);
     ExitButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OnExitClicked);
 }
 
 void UMainMenu::NativeDestruct()
 {
+    if (UGameStartSubsystem* GameStart = Utils::GetGameInstanceSubsystem<UGameStartSubsystem>(this); IsValid(GameStart))
+    {
+        GameStart->OnGameStartFailed.RemoveAll(this);
+    }
     NewGameButton->OnClicked.RemoveDynamic(this, &ThisClass::OnNewGameClicked);
     ExitButton->OnClicked.RemoveDynamic(this, &ThisClass::OnExitClicked);
     Super::NativeDestruct();
@@ -44,20 +52,23 @@ void UMainMenu::OnNewGameClicked()
     {
         return;
     }
-    const TSoftObjectPtr<UWorld>& GameMap = UTowerDefenseSettings::Get().GameMap;
-    if (GameMap.IsNull() || !FPackageName::DoesPackageExist(GameMap.ToSoftObjectPath().GetLongPackageName()))
-    {
-        UE_LOG(LogTemp, Error, TEXT("Main menu: configure a valid GameMap in TowerDefenseSettings"));
-        return;
-    }
-    if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
+    UGameStartSubsystem* GameStart = Utils::GetGameInstanceSubsystem<UGameStartSubsystem>(this);
+    URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this);
+    if (IsValid(GameStart) && IsValid(Run) && GameStart->StartGame())
     {
         Run->FailRun();
-        Run->StartNewRun();
         bStartingGame = true;
         NewGameButton->SetIsEnabled(false);
-        UGameplayStatics::OpenLevelBySoftObjectPtr(this, GameMap);
+        ExitButton->SetIsEnabled(false);
     }
+}
+
+void UMainMenu::OnGameStartFailed()
+{
+    bStartingGame = false;
+    NewGameButton->SetIsEnabled(true);
+    ExitButton->SetIsEnabled(true);
+    OnAddedToViewport();
 }
 
 void UMainMenu::OnExitClicked()

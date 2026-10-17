@@ -7,6 +7,7 @@
 #include "RunSubsystem.generated.h"
 
 class UDayChoiceDataAsset;
+class UGameStartSubsystem;
 
 UENUM(BlueprintType)
 enum class ERunPhase : uint8
@@ -112,7 +113,11 @@ public:
 private:
     void SetPhase(ERunPhase Phase);
     void BeginDay();
-    void OnDayChoiceLoaded();
+    void CollectGameAssets(TArray<FSoftObjectPath>& Assets);
+    void OnGameAssetsLoaded(bool bSuccess);
+
+    UPROPERTY()
+    TObjectPtr<UGameStartSubsystem> GameStart;
 
     UPROPERTY()
     TWeakObjectPtr<AWavesManager> WavesManager;

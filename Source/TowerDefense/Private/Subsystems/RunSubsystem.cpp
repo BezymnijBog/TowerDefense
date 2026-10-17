@@ -3,7 +3,7 @@
 #include "Subsystems/RunSubsystem.h"
 #include "Actors/WavesManager.h"
 #include "Data/DayChoiceDataAsset.h"
-#include "Engine/AssetManager.h"
+#include "Subsystems/GameStartSubsystem.h"
 #include "Settings/TowerDefenseSettings.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRunSystem, Log, All);
@@ -34,6 +34,10 @@ float FRunState::Difficulty() const
 
 void URunSubsystem::StartNewRun()
 {
+    if (!IsValid(DayChoiceAsset))
+    {
+        return;
+    }
     if (RunState.Phase != ERunPhase::None && RunState.Phase != ERunPhase::RunComplete && RunState.Phase != ERunPhase::RunFailed)
     {
         return;
@@ -64,7 +68,7 @@ void URunSubsystem::BeginDay()
 {
     if (!IsValid(DayChoiceAsset))
     {
-        GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::BeginDay);
+        UE_LOG(LogRunSystem, Error, TEXT("Cannot begin day before game assets have loaded."));
         return;
     }
     CurrentChoices.Reset();
@@ -212,9 +216,14 @@ void URunSubsystem::FailRun()
 void URunSubsystem::RegisterWavesManager(AWavesManager* Manager)
 {
     WavesManager = Manager;
-    if (RunState.Phase == ERunPhase::None)
+    if (IsValid(GameStart) && GameStart->AreAssetsReady())
     {
         StartNewRun();
+    }
+    else if (IsValid(GameStart))
+    {
+        // Also support starting PIE directly on the gameplay map.
+        GameStart->LoadGameAssets();
     }
 }
 
@@ -230,12 +239,21 @@ void URunSubsystem::UnregisterWavesManager(const AWavesManager* Manager)
 void URunSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    UAssetManager::GetStreamableManager().RequestAsyncLoad(UTowerDefenseSettings::Get().DayChoiceAsset.ToSoftObjectPath(),
-                                                           FStreamableDelegate::CreateUObject(this, &ThisClass::OnDayChoiceLoaded));
+    GameStart = Collection.InitializeDependency<UGameStartSubsystem>();
+    if (IsValid(GameStart))
+    {
+        GameStart->OnCollectGameAssets.AddUObject(this, &ThisClass::CollectGameAssets);
+        GameStart->OnGameAssetsLoaded.AddUObject(this, &ThisClass::OnGameAssetsLoaded);
+    }
 }
 
 void URunSubsystem::Deinitialize()
 {
+    if (IsValid(GameStart))
+    {
+        GameStart->OnCollectGameAssets.RemoveAll(this);
+        GameStart->OnGameAssetsLoaded.RemoveAll(this);
+    }
     WavesManager.Reset();
     DayChoiceGenerated.Clear();
     OnPhaseChanged.Clear();
@@ -243,7 +261,16 @@ void URunSubsystem::Deinitialize()
     Super::Deinitialize();
 }
 
-void URunSubsystem::OnDayChoiceLoaded()
+void URunSubsystem::CollectGameAssets(TArray<FSoftObjectPath>& Assets)
 {
-    DayChoiceAsset = UTowerDefenseSettings::Get().DayChoiceAsset.Get();
+    Assets.AddUnique(UTowerDefenseSettings::Get().DayChoiceAsset.ToSoftObjectPath());
+}
+
+void URunSubsystem::OnGameAssetsLoaded(bool bSuccess)
+{
+    DayChoiceAsset = bSuccess ? UTowerDefenseSettings::Get().DayChoiceAsset.Get() : nullptr;
+    if (bSuccess && WavesManager.IsValid())
+    {
+        StartNewRun();
+    }
 }

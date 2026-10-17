@@ -57,6 +57,7 @@ void UPlayerHudWidget::NativeConstruct()
 
 void UPlayerHudWidget::OnRunPhaseChanged(ERunPhase Phase)
 {
+    BuildMenu->SetVisibility(Phase == ERunPhase::DaySelection ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
     ToggleWaveWidgetVisibility(Phase == ERunPhase::CombatPreparation);
     NextDayButton->SetVisibility(Phase == ERunPhase::PostEvent ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     StatusText->SetVisibility(Phase == ERunPhase::None ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);

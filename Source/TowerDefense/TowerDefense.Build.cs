@@ -27,6 +27,7 @@ public class TowerDefense : ModuleRules
 			"InputCore",
 			"NavigationSystem",
 			"Niagara",
+			"Slate",
 			"SlateCore"
 		});
 	}
