@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Interfaces/PlayerHudInterface.h"
 #include "Subsystems/RunSubsystem.h"
 #include "PlayerHudWidget.generated.h"
 
@@ -15,7 +16,7 @@ class UButton;
 class UTextBlock;
 
 UCLASS()
-class TOWERDEFENSE_API UPlayerHudWidget : public UUserWidget
+class TOWERDEFENSE_API UPlayerHudWidget : public UUserWidget, public IPlayerHudInterface
 {
     GENERATED_BODY()
 
@@ -25,6 +26,8 @@ public:
 
     virtual void NativeConstruct() override;
     virtual void NativeDestruct() override;
+
+    virtual void OnAddedToViewport() override;
 
     void OnRunPhaseChanged(ERunPhase Phase);
 

@@ -11,6 +11,10 @@
 
 void UWorldRoadSubsystem::RegisterActor(AWayActor* WayActor)
 {
+    if (!IsValid(WayActor) || !WavesManager.IsValid())
+    {
+        return;
+    }
     WavesManager->AddSpawner(WayActor);
     RegisteredActors.Emplace(WayActor);
     FinishedWaves.Emplace(WayActor, false);
@@ -64,7 +68,6 @@ void UWorldRoadSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
     WavesManager = Utils::GetActorOfClass<AWavesManager>(&InWorld);
-    check(WavesManager.IsValid());
 }
 
 void UWorldRoadSubsystem::OnSpawnerWaveFinished(AWayActor* WayActor)

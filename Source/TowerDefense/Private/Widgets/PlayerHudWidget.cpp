@@ -2,6 +2,8 @@
 
 #include "Widgets/PlayerHudWidget.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "Attributes/PlayerAttributeSet.h"
 #include "Widgets/HireMenu.h"
 #include "Widgets/MoneyWidget.h"
 #include "Widgets/StartWaveWidget.h"
@@ -73,6 +75,21 @@ void UPlayerHudWidget::NativeDestruct()
 
     NextDayButton->OnClicked.RemoveDynamic(this, &ThisClass::OnNextDayClicked);
     Super::NativeDestruct();
+}
+
+void UPlayerHudWidget::OnAddedToViewport()
+{
+    if (APlayerController* Controller = GetOwningPlayer(); IsValid(Controller))
+    {
+        FInputModeGameAndUI InputMode;
+        InputMode.SetHideCursorDuringCapture(false);
+        Controller->SetInputMode(InputMode);
+        Controller->SetShowMouseCursor(true);
+    }
+    if (const UAbilitySystemComponent* AbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwningPlayer()); IsValid(AbilitySystem))
+    {
+        SetMoney(AbilitySystem->GetSet<UPlayerAttributeSet>()->GetMoney());
+    }
 }
 
 void UPlayerHudWidget::OnNextDayClicked()

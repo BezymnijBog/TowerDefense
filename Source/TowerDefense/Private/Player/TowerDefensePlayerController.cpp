@@ -8,14 +8,11 @@
 #include "Attributes/PlayerAttributeSet.h"
 #include "Components/PlayerAbilitySystemComponent.h"
 #include "Engine/LocalPlayer.h"
-#include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GameFramework/Pawn.h"
-#include "Subsystems/WorldRoadSubsystem.h"
 #include "Subsystems/RunSubsystem.h"
+#include "Subsystems/WorldRoadSubsystem.h"
 #include "Utils/BaseUtils.h"
-#include "Widgets/HireMenuElement.h"
 #include "Widgets/PlayerHudWidget.h"
 
 ATowerDefensePlayerController::ATowerDefensePlayerController()
@@ -104,7 +101,7 @@ void ATowerDefensePlayerController::StartWave()
 
     if (const APlayerHUD* const PlayerHUD = GetHUD<APlayerHUD>(); IsValid(PlayerHUD))
     {
-        const UPlayerHudWidget* const HudWidget = PlayerHUD->GetHUDWidget();
+        const UPlayerHudWidget* const HudWidget = PlayerHUD->GetHUDWidget<UPlayerHudWidget>();
         check(IsValid(HudWidget));
         HudWidget->ToggleWaveWidgetVisibility(false);
     }
@@ -114,7 +111,7 @@ void ATowerDefensePlayerController::OnWaveCleared()
 {
     if (const APlayerHUD* const PlayerHUD = GetHUD<APlayerHUD>(); IsValid(PlayerHUD))
     {
-        const UPlayerHudWidget* const HudWidget = PlayerHUD->GetHUDWidget();
+        const UPlayerHudWidget* const HudWidget = PlayerHUD->GetHUDWidget<UPlayerHudWidget>();
         check(IsValid(HudWidget));
         const UWorldRoadSubsystem* Roads = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this);
         HudWidget->ToggleWaveWidgetVisibility(IsValid(Roads) && Roads->CanStartWave());

@@ -39,6 +39,9 @@ public:
     UPROPERTY(Config, EditDefaultsOnly, Category = "Run")
     TSoftObjectPtr<UDayChoiceDataAsset> DayChoiceAsset;
 
+    UPROPERTY(Config, EditDefaultsOnly, Category = "Run")
+    TSoftObjectPtr<UWorld> GameMap;
+
     int32 GetReward(EDayEventType EventType) const;
 
     virtual FName GetCategoryName() const override;

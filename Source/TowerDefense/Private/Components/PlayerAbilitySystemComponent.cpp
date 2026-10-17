@@ -30,8 +30,11 @@ void UPlayerAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayRe
 
 void UPlayerAbilitySystemComponent::OnMoneyChanged(const FOnAttributeChangeData& OnAttributeChangeData) const
 {
-    if (const APlayerHUD* const HUD = GetOwner<APlayerController>()->GetHUD<APlayerHUD>(); IsValid(HUD) && IsValid(HUD->GetHUDWidget()))
+    if (const APlayerHUD* const HUD = GetOwner<APlayerController>()->GetHUD<APlayerHUD>(); IsValid(HUD))
     {
-        HUD->GetHUDWidget()->SetMoney(OnAttributeChangeData.NewValue);
+        if (const UPlayerHudWidget* HudWidget = HUD->GetHUDWidget<UPlayerHudWidget>(); IsValid(HudWidget))
+        {
+            HudWidget->SetMoney(OnAttributeChangeData.NewValue);
+        }
     }
 }
