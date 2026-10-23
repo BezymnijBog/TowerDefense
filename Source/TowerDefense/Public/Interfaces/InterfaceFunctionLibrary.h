@@ -11,7 +11,7 @@ class AProjectile;
 class UAbilitySystemComponent;
 class UAIPerceptionComponent;
 class UWayComponent;
-
+enum class EUnitAttackPattern : uint8;
 struct FHireInfo;
 
 UCLASS()
@@ -23,8 +23,13 @@ public:
     static FDeathDelegate& GetDeathDelegate(AActor* Actor);
     static void CallOnDeath(AActor* Actor);
     static bool IsActorDead(const AActor* Actor);
+    static bool IsValidAndAlive(const AActor* Actor);
 
     static float GetAttackRange(const AActor* Actor);
+    static int32 GetAttackRadiusInCells(const AActor* Actor);
+    static EUnitAttackPattern GetAttackPattern(const AActor* Actor);
+    static bool CanAttackFrom(const AActor* Actor, const FVector& Position, const AActor* Target);
+    static bool CanAttack(const AActor* Actor, const AActor* Target);
 
     static UWayComponent* GetWayComponent(const AActor* Actor);
 

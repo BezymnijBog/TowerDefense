@@ -20,7 +20,9 @@ ATowerDefenseAIController::ATowerDefenseAIController()
 void ATowerDefenseAIController::ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
     Super::ActorsPerceptionUpdated(UpdatedActors);
-    if (const AActor* Target = GetCurrentTarget(); IsValid(Target) && !UpdatedActors.Contains(Target))
+    TArray<AActor*> VisibleActors;
+    PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), VisibleActors);
+    if (const AActor* Target = GetCurrentTarget(); IsValid(Target) && !VisibleActors.Contains(Target))
     {
         RemoveCurrentAttackTarget();
     }
@@ -39,6 +41,8 @@ bool ATowerDefenseAIController::IsDead() const
 
 void ATowerDefenseAIController::OnDeath()
 {
+    GetWorldTimerManager().ClearTimer(PositionRefreshTimer);
+    RemoveCurrentAttackTarget();
     BrainComponent->StopLogic(TEXT("Is dead"));
     Blackboard->SetValueAsFloat(BlackboardKeys.AttackRange, 0.f);
     Blackboard->SetValueAsObject(BlackboardKeys.AttackTarget, nullptr);
@@ -51,6 +55,31 @@ void ATowerDefenseAIController::OnDeath()
 FDeathDelegate& ATowerDefenseAIController::GetDeathDelegate()
 {
     return UInterfaceFunctionLibrary::GetDeathDelegate(GetPawn());
+}
+
+float ATowerDefenseAIController::GetAttackRange() const
+{
+    return UInterfaceFunctionLibrary::GetAttackRange(GetPawn());
+}
+
+int32 ATowerDefenseAIController::GetAttackRadiusInCells() const
+{
+    return UInterfaceFunctionLibrary::GetAttackRadiusInCells(GetPawn());
+}
+
+EUnitAttackPattern ATowerDefenseAIController::GetAttackPattern() const
+{
+    return UInterfaceFunctionLibrary::GetAttackPattern(GetPawn());
+}
+
+bool ATowerDefenseAIController::CanAttackFrom(const FVector& Position, const AActor* Target) const
+{
+    return UInterfaceFunctionLibrary::CanAttackFrom(GetPawn(), Position, Target);
+}
+
+bool ATowerDefenseAIController::CanAttack(const AActor* Target) const
+{
+    return UInterfaceFunctionLibrary::CanAttack(GetPawn(), Target);
 }
 
 AActor* ATowerDefenseAIController::GetClosestSensedActor() const
@@ -68,7 +97,9 @@ AActor* ATowerDefenseAIController::GetClosestSensedActor() const
         return VisibleActors[0];
     }
 
-    VisibleActors.SetNum(Algo::RemoveIf(VisibleActors, [](const AActor* Actor) { return UInterfaceFunctionLibrary::IsActorDead(Actor); }));
+    const ATowerDefenseAICharacter* CombatCharacter = Cast<ATowerDefenseAICharacter>(ControlledPawn);
+    VisibleActors.SetNum(
+        Algo::RemoveIf(VisibleActors, [CombatCharacter](const AActor* Actor) { return !IsValid(CombatCharacter) || !CombatCharacter->CanAttack(Actor); }));
     const FVector PawnLocation = ControlledPawn->GetActorLocation();
     if (IsBeingBeaten())
     {
@@ -91,12 +122,24 @@ void ATowerDefenseAIController::OnPossess(APawn* InPawn)
         BlackboardComponent->SetValueAsFloat(BlackboardKeys.AttackRange, UInterfaceFunctionLibrary::GetAttackRange(InPawn));
         PerceptionComponent->RequestStimuliListenerUpdate();
         SelectNextTarget();
+        GetWorldTimerManager().SetTimer(PositionRefreshTimer, this, &ThisClass::SelectNextTarget, PositionRefreshInterval, true);
     }
+}
+
+void ATowerDefenseAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    GetWorldTimerManager().ClearTimer(PositionRefreshTimer);
+    RemoveCurrentAttackTarget();
+    Super::EndPlay(EndPlayReason);
 }
 
 void ATowerDefenseAIController::SelectNextTarget()
 {
-    if (HasValidTarget())
+    if (!IsValid(GetPawn()) || IsDead() || !IsValid(GetBlackboardComponent()))
+    {
+        return;
+    }
+    if (CanAttackCurrentTarget())
     {
         return;
     }
@@ -118,6 +161,10 @@ bool ATowerDefenseAIController::IsBeingBeaten() const
 void ATowerDefenseAIController::RemoveCurrentAttackTarget()
 {
     UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
+    if (!IsValid(BlackboardComponent))
+    {
+        return;
+    }
     if (AActor* const CurrentTarget = Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget)); IsValid(CurrentTarget))
     {
         UInterfaceFunctionLibrary::GetDeathDelegate(CurrentTarget).Remove(TargetDeathHandle);
@@ -145,5 +192,10 @@ bool ATowerDefenseAIController::HasValidTarget() const
 AActor* ATowerDefenseAIController::GetCurrentTarget() const
 {
     const UBlackboardComponent* const BlackboardComponent = GetBlackboardComponent();
-    return Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget));
+    return IsValid(BlackboardComponent) ? Cast<AActor>(BlackboardComponent->GetValueAsObject(BlackboardKeys.AttackTarget)) : nullptr;
+}
+
+bool ATowerDefenseAIController::CanAttackCurrentTarget() const
+{
+    return CanAttack(GetCurrentTarget());
 }

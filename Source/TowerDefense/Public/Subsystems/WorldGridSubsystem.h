@@ -9,7 +9,7 @@
 class ATowerDefenseWorldSettings;
 
 USTRUCT()
-struct FGridCellInfo
+struct TOWERDEFENSE_API FGridCellInfo
 {
     GENERATED_BODY()
 

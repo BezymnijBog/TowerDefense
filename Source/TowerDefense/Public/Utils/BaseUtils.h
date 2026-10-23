@@ -18,7 +18,6 @@ class UGameplayAbility;
 
 namespace Teams
 {
-UENUM(BlueprintType)
 enum ETeamId : uint8
 {
     TeamPlayer = 0,
@@ -27,12 +26,14 @@ enum ETeamId : uint8
 };
 
 ETeamAttitude::Type AttitudeSolveFunction(FGenericTeamId Left, FGenericTeamId Right);
+bool CanAttackEachOther(const AActor* Left, const AActor* Right);
 } // namespace Teams
 
 namespace Collision
 {
+inline constexpr ECollisionChannel UnitHitTarget = ECC_GameTraceChannel2;
 const FName NoCollisionProfile = TEXT("NoCollision");
-}
+} // namespace Collision
 
 USTRUCT()
 struct FHireInfo

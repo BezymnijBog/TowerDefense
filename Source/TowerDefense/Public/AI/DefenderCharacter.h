@@ -24,6 +24,9 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    UPROPERTY(EditDefaultsOnly, Category = Defender)
+    bool bOccupiesStationaryGridCells = true;
+
     UPROPERTY(VisibleInstanceOnly, Category=Defender)
     TArray<FIntVector2> OccupiedCells;
 

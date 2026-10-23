@@ -17,7 +17,7 @@ bool FGridCellInfo::IsAvailable() const
 
 bool FGridCellInfo::TryReserveCell(AActor* Reserving)
 {
-    if (ReservedBy.IsValid() || !IsValid(Reserving))
+    if (Occupant.IsValid() || (ReservedBy.IsValid() && ReservedBy != Reserving) || !IsValid(Reserving))
     {
         return false;
     }

@@ -22,6 +22,11 @@ public:
     virtual void LaunchActiveProjectile() override;
 
 protected:
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<AProjectile>> OwnedProjectiles;
+
     void OnProjectileHit(AProjectile* Projectile);
 
     UPROPERTY(VisibleAnywhere, Category = Components)

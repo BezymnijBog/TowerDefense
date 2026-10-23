@@ -5,11 +5,13 @@
 #include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AI/TowerDefenseAIController.h"
 
 EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     UAbilitySystemComponent* const AbilityComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerComp.GetOwner());
-    if (!IsValid(AbilityComponent))
+    const ATowerDefenseAIController* Controller = Cast<ATowerDefenseAIController>(OwnerComp.GetAIOwner());
+    if (!IsValid(AbilityComponent) || !IsValid(Controller) || !Controller->CanAttackCurrentTarget())
     {
         return EBTNodeResult::Failed;
     }

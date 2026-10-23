@@ -5,6 +5,7 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Abilities/Tasks/AbilityTask.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Interfaces/InterfaceFunctionLibrary.h"
 
 namespace
 {
@@ -34,7 +35,13 @@ ETeamAttitude::Type AttitudeSolveFunction(FGenericTeamId Left, FGenericTeamId Ri
 
     return ETeamAttitude::Hostile;
 }
+
+bool CanAttackEachOther(const AActor* Left, const AActor* Right)
+{
+    return UInterfaceFunctionLibrary::IsValidAndAlive(Left) && UInterfaceFunctionLibrary::IsValidAndAlive(Right)
+        && FGenericTeamId::GetAttitude(Left, Right) == ETeamAttitude::Hostile;
 }
+} // namespace Teams
 
 namespace AbilitySystem
 {
@@ -56,4 +63,3 @@ void EndTask(UAbilityTask* Task)
     }
 }
 } // namespace AbilitySystem
-

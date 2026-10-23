@@ -10,6 +10,7 @@
 #include "Perception/AISense_Sight.h"
 #include "Subsystems/WorldGridSubsystem.h"
 #include "Utils/WorldGridFunctionLibrary.h"
+#include "Utils/BaseUtils.h"
 #include "Widgets/ProgressBarWidget.h"
 
 ABaseBuilding::ABaseBuilding()
@@ -25,6 +26,27 @@ ABaseBuilding::ABaseBuilding()
 
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
     StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+    HitBox->SetCollisionResponseToChannel(Collision::UnitHitTarget, ECR_Overlap);
+    Mesh->SetCollisionResponseToChannel(Collision::UnitHitTarget, ECR_Ignore);
+    WidgetComponent->SetCollisionResponseToChannel(Collision::UnitHitTarget, ECR_Ignore);
+}
+
+void ABaseBuilding::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+    TInlineComponentArray<UPrimitiveComponent*> Components(this);
+    for (UPrimitiveComponent* Component : Components)
+    {
+        Component->SetCollisionResponseToChannel(Collision::UnitHitTarget, Component == HitBox ? ECR_Overlap : ECR_Ignore);
+    }
+    if (HitBox->GetCollisionEnabled() == ECollisionEnabled::NoCollision)
+    {
+        HitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    }
+    else if (HitBox->GetCollisionEnabled() == ECollisionEnabled::PhysicsOnly)
+    {
+        HitBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    }
 }
 
 FGenericTeamId ABaseBuilding::GetGenericTeamId() const

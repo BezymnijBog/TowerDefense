@@ -15,8 +15,26 @@ AAIShootingCharacter::AAIShootingCharacter(const FObjectInitializer& ObjectIniti
 
 void AAIShootingCharacter::ActivateProjectile()
 {
-    ActiveProjectile = ReserveProjectiles.IsEmpty() ? GetWorld()->SpawnActor<AProjectile>(ProjectileClass) : ReserveProjectiles.Pop();
-    ProjectileMesh->SetVisibility(true);
+    if (ActiveProjectile.IsValid())
+    {
+        OnProjectileHit(ActiveProjectile.Get());
+    }
+    if (ReserveProjectiles.IsEmpty())
+    {
+        FActorSpawnParameters Parameters;
+        Parameters.Owner = this;
+        Parameters.Instigator = this;
+        ActiveProjectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, Parameters);
+        if (ActiveProjectile.IsValid())
+        {
+            OwnedProjectiles.Add(ActiveProjectile.Get());
+        }
+    }
+    else
+    {
+        ActiveProjectile = ReserveProjectiles.Pop();
+    }
+    ProjectileMesh->SetVisibility(ActiveProjectile.IsValid());
 }
 
 void AAIShootingCharacter::LaunchActiveProjectile()
@@ -28,19 +46,22 @@ void AAIShootingCharacter::LaunchActiveProjectile()
     }
 
     const AActor* const Target = Cast<AActor>(CurrentController->GetBlackboardComponent()->GetValueAsObject(TargetBlackboardKey));
-    if (!IsValid(Target))
+    if (!CanAttack(Target))
     {
+        OnProjectileHit(ActiveProjectile.Get());
+        ActiveProjectile = nullptr;
+        ProjectileMesh->SetVisibility(false);
         return;
     }
 
     ProjectileMesh->SetVisibility(false);
 
     ActiveProjectile->SetActorLocation(GetMesh()->GetSocketLocation(SpawnSocketName));
-    ActiveProjectile->SetActorRotation(Owner->GetActorQuat() * ReleaseRotation.Quaternion());
-
-    ActiveProjectile->Activate(Target, this);
-    ActiveProjectile->OnHitDelegate.BindUObject(this, &ThisClass::OnProjectileHit);
+    ActiveProjectile->SetActorRotation((Target->GetActorLocation() - ActiveProjectile->GetActorLocation()).Rotation());
+    AProjectile* Projectile = ActiveProjectile.Get();
     ActiveProjectile = nullptr;
+    Projectile->OnHitDelegate.BindUObject(this, &ThisClass::OnProjectileHit);
+    Projectile->Activate(Target, this);
 }
 
 void AAIShootingCharacter::OnProjectileHit(AProjectile* Projectile)
@@ -49,4 +70,17 @@ void AAIShootingCharacter::OnProjectileHit(AProjectile* Projectile)
     Projectile->OnHitDelegate.Unbind();
     Projectile->SetActorTransform(FTransform::Identity);
     ReserveProjectiles.Emplace(Projectile);
+}
+
+void AAIShootingCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    for (AProjectile* Projectile : OwnedProjectiles)
+    {
+        if (IsValid(Projectile))
+        {
+            Projectile->OnHitDelegate.Unbind();
+            Projectile->Destroy();
+        }
+    }
+    Super::EndPlay(EndPlayReason);
 }

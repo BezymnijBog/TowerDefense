@@ -3,7 +3,10 @@
 #include "Animation/Notifies/AnimNotify_SendGameplayEvent.h"
 
 #include "AIController.h"
+#include "AI/TowerDefenseAICharacter.h"
+#include "Abilities/TowerDefenceTags.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Utils/BaseUtils.h"
 
 void UAnimNotify_SendGameplayEvent::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
@@ -23,6 +26,11 @@ void UAnimNotify_SendGameplayEvent::Notify(USkeletalMeshComponent* MeshComp, UAn
 
     AActor* const Target = Cast<AActor>(Controller->GetBlackboardComponent()->GetValueAsObject(TargetBlackboardKey));
     if (!IsValid(Target))
+    {
+        return;
+    }
+
+    if (Tag == Action_Damage_Take && !UInterfaceFunctionLibrary::CanAttack(Instigator, Target))
     {
         return;
     }

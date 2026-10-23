@@ -48,6 +48,7 @@ protected:
     void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 
     virtual void BeginPlay() override;
+    virtual void PostInitializeComponents() override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UBoxComponent> HitBox;

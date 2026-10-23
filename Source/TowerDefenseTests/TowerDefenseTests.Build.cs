@@ -10,6 +10,9 @@ public class TowerDefenseTests : ModuleRules
             "CoreUObject",
             "CQTest",
             "Engine",
+            "AIModule",
+            "GameplayAbilities",
+            "GameplayTags",
             "TowerDefense"
         });
     }

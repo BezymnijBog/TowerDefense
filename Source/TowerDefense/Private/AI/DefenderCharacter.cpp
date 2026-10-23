@@ -5,11 +5,15 @@
 #include "Components/CapsuleComponent.h"
 #include "Subsystems/WorldGridSubsystem.h"
 #include "Utils/WorldGridFunctionLibrary.h"
+#include "Utils/BaseUtils.h"
 
 void ADefenderCharacter::OnDeath()
 {
     Super::OnDeath();
-    GetWorld()->GetSubsystem<UWorldGridSubsystem>()->UnRegisterActor(this);
+    if (UWorldGridSubsystem* Grid = Utils::GetWorldSubsystem<UWorldGridSubsystem>(this); bOccupiesStationaryGridCells && IsValid(Grid))
+    {
+        Grid->UnRegisterActor(this);
+    }
 }
 
 const TArray<FIntVector2>& ADefenderCharacter::GetAdjacentCells() const
@@ -30,7 +34,14 @@ FIntVector2 ADefenderCharacter::GetSize() const
 void ADefenderCharacter::BeginPlay()
 {
     Super::BeginPlay();
+    if (!bOccupiesStationaryGridCells)
+    {
+        return;
+    }
     AdjacentCells = UWorldGridFunctionLibrary::GetAdjacentCells(this, GetCapsuleComponent()->Bounds.GetBox());
     OccupiedCells = UWorldGridFunctionLibrary::GetOccupiedCells(this, GetCapsuleComponent()->Bounds.GetBox());
-    GetWorld()->GetSubsystem<UWorldGridSubsystem>()->RegisterActor(this);
+    if (UWorldGridSubsystem* Grid = Utils::GetWorldSubsystem<UWorldGridSubsystem>(this); IsValid(Grid))
+    {
+        Grid->RegisterActor(this);
+    }
 }

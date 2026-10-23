@@ -51,6 +51,11 @@ bool UInterfaceFunctionLibrary::IsActorDead(const AActor* Actor)
     return false;
 }
 
+bool UInterfaceFunctionLibrary::IsValidAndAlive(const AActor* Actor)
+{
+    return IsValid(Actor) && !IsActorDead(Actor);
+}
+
 float UInterfaceFunctionLibrary::GetAttackRange(const AActor* Actor)
 {
     if (const IAttackerInterface* const AsInterface = Cast<IAttackerInterface>(Actor); AsInterface)
@@ -58,6 +63,42 @@ float UInterfaceFunctionLibrary::GetAttackRange(const AActor* Actor)
         return AsInterface->GetAttackRange();
     }
     return 0.0f;
+}
+
+int32 UInterfaceFunctionLibrary::GetAttackRadiusInCells(const AActor* Actor)
+{
+    if (const IAttackerInterface* const AsInterface = Cast<IAttackerInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetAttackRadiusInCells();
+    }
+    return 0;
+}
+
+EUnitAttackPattern UInterfaceFunctionLibrary::GetAttackPattern(const AActor* Actor)
+{
+    if (const IAttackerInterface* const AsInterface = Cast<IAttackerInterface>(Actor); AsInterface)
+    {
+        return AsInterface->GetAttackPattern();
+    }
+    return EUnitAttackPattern::Adjacent;
+}
+
+bool UInterfaceFunctionLibrary::CanAttackFrom(const AActor* Actor, const FVector& Position, const AActor* Target)
+{
+    if (const IAttackerInterface* const AsInterface = Cast<IAttackerInterface>(Actor); AsInterface)
+    {
+        return AsInterface->CanAttackFrom(Position, Target);
+    }
+    return false;
+}
+
+bool UInterfaceFunctionLibrary::CanAttack(const AActor* Actor, const AActor* Target)
+{
+    if (const IAttackerInterface* const AsInterface = Cast<IAttackerInterface>(Actor); AsInterface)
+    {
+        return AsInterface->CanAttack(Target);
+    }
+    return false;
 }
 
 UWayComponent* UInterfaceFunctionLibrary::GetWayComponent(const AActor* Actor)

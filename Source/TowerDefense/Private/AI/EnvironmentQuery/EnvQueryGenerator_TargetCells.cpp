@@ -3,14 +3,16 @@
 #include "AI/EnvironmentQuery/EnvQueryGenerator_TargetCells.h"
 
 #include "AI/EnvironmentQuery/EnvQueryItemType_TargetCells.h"
+#include "AI/TowerDefenseAICharacter.h"
+#include "AIController.h"
 #include "EnvironmentQuery/Contexts/EnvQueryContext_Querier.h"
-#include "EnvironmentQuery/Items/EnvQueryItemType_Point.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Internationalization/Internationalization.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AIPerceptionListenerInterface.h"
 #include "Perception/AISense.h"
 #include "Subsystems/WorldGridSubsystem.h"
+#include "Utils/BaseUtils.h"
 
 #define LOCTEXT_NAMESPACE "EnvQueryGenerator"
 
@@ -30,6 +32,29 @@ UAIPerceptionComponent* GetPerceptionComponent(AActor* Listener)
 
     return nullptr;
 }
+
+TSet<FIntVector2> GetPossibleSlots(
+    const UWorldGridSubsystem* Grid, const IAttackerInterface* Attacker, const AActor* Target, const FIntVector2& TargetCell, int32 Radius)
+{
+    if (!Attacker)
+    {
+        return {};
+    }
+    TSet<FIntVector2> Result;
+    for (int32 X = -Radius; X <= Radius; ++X)
+    {
+        for (int32 Y = -Radius; Y <= Radius; ++Y)
+        {
+            const FIntVector2 Coordinate = TargetCell + FIntVector2(X, Y);
+            const FGridCellInfo* Cell = Grid->GetCellInfo(Coordinate);
+            if (Cell && Cell->IsAvailable() && Attacker->CanAttackFrom(Cell->WorldCoordinate, Target))
+            {
+                Result.Add(Coordinate);
+            }
+        }
+    }
+    return Result;
+}
 } // namespace
 
 UEnvQueryGenerator_TargetCells::UEnvQueryGenerator_TargetCells(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -42,21 +67,22 @@ UEnvQueryGenerator_TargetCells::UEnvQueryGenerator_TargetCells(const FObjectInit
 
 void UEnvQueryGenerator_TargetCells::GenerateItems(FEnvQueryInstance& QueryInstance) const
 {
-    //QueryInstance.ValueSize = GetDefault<UEnvQueryItemType_TargetCells>()->GetValueSize();
-    TSet<FIntVector2> AttackSlots;
-    for (const AActor* const PerceivedActor : GetPerceivedActors(QueryInstance))
+    const IAttackerInterface* Attacker = Cast<IAttackerInterface>(QueryInstance.Owner.Get());
+    const UWorldGridSubsystem* Subsystem = Utils::GetWorldSubsystem<UWorldGridSubsystem>(QueryInstance.Owner.Get());
+    if (!Attacker || !IsValid(Subsystem))
     {
-        AttackSlots.Append(UInterfaceFunctionLibrary::GetAdjacentCells(PerceivedActor));
-    }
-
-    const UWorld* const World = GetWorld();
-    if (!IsValid(World))
-    {
-        UE_LOG(LogEQS, Error, TEXT("Can't get world subsystem, world is invalid"));
         return;
     }
 
-    const UWorldGridSubsystem* const Subsystem = World->GetSubsystem<UWorldGridSubsystem>();
+    TSet<FIntVector2> AttackSlots;
+    const int32 Radius = Attacker->GetAttackRadiusInCells();
+    for (const AActor* const PerceivedActor : GetPerceivedActors(QueryInstance))
+    {
+        for (const FIntVector2& TargetCell : UInterfaceFunctionLibrary::GetOccupiedCells(PerceivedActor))
+        {
+            AttackSlots.Append(GetPossibleSlots(Subsystem, Attacker, PerceivedActor, TargetCell, Radius));
+        }
+    }
     for (const FIntVector2& CellCoord : AttackSlots)
     {
         if (const FGridCellInfo* const Info = Subsystem->GetCellInfo(CellCoord); Info)

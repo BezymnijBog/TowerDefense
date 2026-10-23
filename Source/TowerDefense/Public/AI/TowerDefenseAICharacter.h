@@ -39,7 +39,13 @@ public:
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     UWayComponent* GetWayComponent() const;
 
+    static bool IsCellInAttackRange(EUnitAttackPattern Pattern, const FIntVector2& Delta, int32 Radius);
+
     virtual float GetAttackRange() const override;
+    virtual EUnitAttackPattern GetAttackPattern() const override;
+    virtual int32 GetAttackRadiusInCells() const override;
+    virtual bool CanAttackFrom(const FVector& Position, const AActor* Target) const override;
+    virtual bool CanAttack(const AActor* Target) const override;
 
     virtual bool IsDead() const override;
     virtual void OnDeath() override;
@@ -50,6 +56,7 @@ protected:
     void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 
     virtual void BeginPlay() override;
+    virtual void PostInitializeComponents() override;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UWidgetComponent> WidgetComponent;
@@ -78,6 +85,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
     float AttackRange = 0.f;
 
+    UPROPERTY(EditDefaultsOnly, Category = "AICharacter|Combat")
+    EUnitAttackPattern AttackPattern = EUnitAttackPattern::Adjacent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "AICharacter|Combat", meta = (ClampMin = "1", ClampMax = "20"))
+    int32 AttackRadiusInCells = 1;
+
     UPROPERTY(VisibleInstanceOnly, Category = "AICharacter")
     TWeakObjectPtr<ATowerDefenseAIController> AICharacterController;
 
@@ -87,6 +100,7 @@ protected:
 private:
     void OnDeathTimerElapsed();
     void GiveReward();
+    bool IsTargetInRange(const FVector& Position, const AActor* Target) const;
 
     FTimerHandle DeathTimer;
 };
