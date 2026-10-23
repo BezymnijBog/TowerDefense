@@ -1,8 +1,10 @@
+// Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
+
 #include "Misc/AutomationTest.h"
 
 #if WITH_AUTOMATION_TESTS
-#include "CQTest.h"
 #include "Components/ActorTestSpawner.h"
+#include "CQTest.h"
 #include "Subsystems/GameStartSubsystem.h"
 #include "Subsystems/RunSubsystem.h"
 #include "Utils/BaseUtils.h"

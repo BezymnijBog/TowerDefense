@@ -4,16 +4,26 @@ public class TowerDefenseTests : ModuleRules
 {
     public TowerDefenseTests(ReadOnlyTargetRules Target) : base(Target)
     {
-        PrivateDependencyModuleNames.AddRange(new string[]
+        if (Target.bBuildEditor)
         {
-            "Core",
-            "CoreUObject",
-            "CQTest",
-            "Engine",
-            "AIModule",
-            "GameplayAbilities",
-            "GameplayTags",
-            "TowerDefense"
-        });
+            PrivateDependencyModuleNames.AddRange(new[]
+            {
+                "TowerDefenseUnitEditor",
+                "UnrealEd"
+            });
+        }
+
+        PrivateDependencyModuleNames.AddRange(
+            new string[]
+            {
+                "Core",
+                "CoreUObject",
+                "CQTest",
+                "Engine",
+                "AIModule",
+                "GameplayAbilities",
+                "GameplayTags",
+                "TowerDefense"
+            });
     }
 }

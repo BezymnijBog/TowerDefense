@@ -13,7 +13,8 @@ public class TowerDefenseEditorTarget : TargetRules
         ExtraModuleNames.AddRange(new string[]
         {
             "TowerDefense",
-            "TowerDefenseTests"
+            "TowerDefenseTests",
+            "TowerDefenseUnitEditor"
         });
     }
 }

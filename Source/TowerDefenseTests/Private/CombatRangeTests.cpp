@@ -1,10 +1,13 @@
+// Made by Kurchev Aleksandr; e-mail: kurchev-al@yandex.ru
+
 #include "Misc/AutomationTest.h"
 
 #if WITH_AUTOMATION_TESTS
 #include "AI/TowerDefenseAICharacter.h"
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCombatRangeTest, "TowerDefense.Combat.AttackCellShapes",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCombatRangeTest,
+                                 "TowerDefense.Combat.AttackCellShapes",
+                                 EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FCombatRangeTest::RunTest(const FString& Parameters)
 {
@@ -21,10 +24,10 @@ bool FCombatRangeTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Two handed ") + Cell, ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::TwoHanded, Delta, 2), bTwoHanded);
         }
     }
-    TestTrue(TEXT("Archer reaches three cells"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, {3, 0}, 3));
-    TestTrue(TEXT("Archer reaches diagonal inside circle"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, {2, 2}, 3));
-    TestFalse(TEXT("Archer cannot reach outside circle"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, {3, 1}, 3));
-    TestFalse(TEXT("Archer cannot attack its own cell"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, {0, 0}, 3));
+    TestTrue(TEXT("Archer reaches three cells"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, { 3, 0 }, 3));
+    TestTrue(TEXT("Archer reaches diagonal inside circle"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, { 2, 2 }, 3));
+    TestFalse(TEXT("Archer cannot reach outside circle"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, { 3, 1 }, 3));
+    TestFalse(TEXT("Archer cannot attack its own cell"), ATowerDefenseAICharacter::IsCellInAttackRange(EUnitAttackPattern::Ranged, { 0, 0 }, 3));
     return true;
 }
 #endif

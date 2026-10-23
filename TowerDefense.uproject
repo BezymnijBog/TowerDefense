@@ -5,6 +5,11 @@
 	"Description": "",
 	"Modules": [
 		{
+			"Name": "TowerDefenseUnitEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		},
+		{
 			"Name": "TowerDefense",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

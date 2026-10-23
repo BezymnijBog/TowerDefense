@@ -9,7 +9,7 @@
 class UGameplayAbility;
 
 USTRUCT(BlueprintType)
-struct FDefaultAbilityDescription
+struct TOWERDEFENSE_API FDefaultAbilityDescription
 {
     GENERATED_BODY()
 
