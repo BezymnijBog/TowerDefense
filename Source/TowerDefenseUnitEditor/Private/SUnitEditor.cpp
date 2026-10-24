@@ -106,8 +106,8 @@ void SUnitEditor::GetDataForSave(UBlueprint*& Blueprint, UDataTable*& DataTable)
 
     const FScopedTransaction Transaction(FText::FromString(TEXT("Edit Tower Defense unit")));
     IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
-    Blueprint = bCreateBlueprint ? CreateBlueprint(BlueprintPath, AssetTools) : Model->LoadedUnit;
-    DataTable = bCreateDataTable ? CreateDataTable(DataTablePath, AssetTools) : Model->AttributeTable;
+    Blueprint = bCreateBlueprint ? CreateBlueprint(BlueprintPath, AssetTools) : Model->LoadedUnit.Get();
+    DataTable = bCreateDataTable ? CreateDataTable(DataTablePath, AssetTools) : Model->AttributeTable.Get();
 }
 
 UBlueprint* SUnitEditor::CreateBlueprint(const FString& BlueprintPath, IAssetTools& AssetTools) const
