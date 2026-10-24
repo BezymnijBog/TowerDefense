@@ -5,6 +5,11 @@
 	"Description": "",
 	"Modules": [
 		{
+			"Name": "TowerDefenseMeshEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		},
+		{
 			"Name": "TowerDefenseUnitEditor",
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit"

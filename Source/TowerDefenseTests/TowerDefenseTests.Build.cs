@@ -9,6 +9,12 @@ public class TowerDefenseTests : ModuleRules
             PrivateDependencyModuleNames.AddRange(new[]
             {
                 "TowerDefenseUnitEditor",
+                "TowerDefenseMeshEditor",
+                "MeshDescription",
+                "SkeletalMeshDescription",
+                "StaticMeshDescription",
+                "AnimationCore",
+                "AssetRegistry",
                 "UnrealEd"
             });
         }
