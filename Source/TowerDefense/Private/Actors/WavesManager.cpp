@@ -3,7 +3,6 @@
 #include "Actors/WavesManager.h"
 
 #include "Actors/WayActor.h"
-#include "Actors/BaseBuilding.h"
 #include "AI/TowerDefenseAICharacter.h"
 #include "Algo/ForEach.h"
 #include "Data/WaveSetTemplateDataAsset.h"
@@ -109,11 +108,8 @@ void AWavesManager::BeginPlay()
     }
     if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
     {
+        Run->OnPhaseChanged.AddUObject(this, &ThisClass::OnRunPhaseChanged);
         Run->RegisterWavesManager(this);
-    }
-    if (IsValid(DefendedBuilding))
-    {
-        DefendedBuilding->GetDeathDelegate().AddUObject(this, &ThisClass::OnDefendedBuildingLost);
     }
 }
 
@@ -129,11 +125,6 @@ void AWavesManager::OnWaveCleared()
 
 void AWavesManager::ResolveVictory()
 {
-    if (IsValid(DefendedBuilding) && DefendedBuilding->IsDead())
-    {
-        OnDefendedBuildingLost();
-        return;
-    }
     if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
     {
         Run->NotifyCombatWon();
@@ -143,26 +134,30 @@ void AWavesManager::ResolveVictory()
 void AWavesManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     GetWorldTimerManager().ClearAllTimersForObject(this);
-    if (IsValid(DefendedBuilding))
-    {
-        DefendedBuilding->GetDeathDelegate().RemoveAll(this);
-    }
     if (UWorldRoadSubsystem* Roads = Utils::GetWorldSubsystem<UWorldRoadSubsystem>(this); IsValid(Roads))
     {
         Roads->WaveCleared.RemoveAll(this);
     }
     if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
     {
+        Run->OnPhaseChanged.RemoveAll(this);
         Run->UnregisterWavesManager(this);
     }
     Super::EndPlay(EndPlayReason);
 }
 
-void AWavesManager::OnDefendedBuildingLost()
+void AWavesManager::OnRunPhaseChanged(ERunPhase Phase)
 {
-    bWavePrepared = false;
-    if (URunSubsystem* Run = Utils::GetGameInstanceSubsystem<URunSubsystem>(this); IsValid(Run))
+    if (Phase == ERunPhase::RunFailed)
     {
-        Run->FailRun();
+        bWavePrepared = false;
+        bWaveActive = false;
+        for (const TWeakObjectPtr<AWayActor>& Spawner : WaveSpawners)
+        {
+            if (Spawner.IsValid())
+            {
+                Spawner->CancelWave();
+            }
+        }
     }
 }

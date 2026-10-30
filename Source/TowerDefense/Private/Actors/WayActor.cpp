@@ -68,6 +68,20 @@ void AWayActor::BeginPlay()
     StartRotation = SplineComponent->GetRotationAtSplineInputKey(0.f, ESplineCoordinateSpace::Local);
 }
 
+void AWayActor::CancelWave()
+{
+    GetWorldTimerManager().ClearTimer(WaveTimer);
+    WaveDefinition.SpawnGroup.Reset();
+    PendingSpawns = 0;
+    for (UUnitSpawnComponent* SpawnComponent : SpawnComponents)
+    {
+        if (IsValid(SpawnComponent))
+        {
+            SpawnComponent->CancelPendingSpawn();
+        }
+    }
+}
+
 void AWayActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     if (UWorldRoadSubsystem* const RoadSubsystem = GetWorld()->GetSubsystem<UWorldRoadSubsystem>(); IsValid(RoadSubsystem))

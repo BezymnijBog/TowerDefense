@@ -5,18 +5,31 @@
 #include "AbilitySystemComponent.h"
 #include "Attributes/BuildingAttributeSet.h"
 #include "Components/BoxComponent.h"
+#include "Components/BuildingConstructionComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Subsystems/WorldGridSubsystem.h"
-#include "Utils/WorldGridFunctionLibrary.h"
 #include "Utils/BaseUtils.h"
+#include "Utils/WorldGridFunctionLibrary.h"
+#include "Widgets/BuildingUpgradeWidget.h"
 #include "Widgets/ProgressBarWidget.h"
 
 ABaseBuilding::ABaseBuilding()
 {
+    TeamId = Teams::TeamPlayer;
     Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
     SetRootComponent(Mesh);
+
+    Construction = CreateDefaultSubobject<UBuildingConstructionComponent>(TEXT("Construction"));
+
+    UpgradeWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("UpgradeWidget"));
+    UpgradeWidget->SetupAttachment(Mesh);
+    UpgradeWidget->SetWidgetSpace(EWidgetSpace::Screen);
+    UpgradeWidget->SetDrawAtDesiredSize(true);
+    UpgradeWidget->SetRelativeLocation(FVector(0.f, 0.f, 250.f));
+    UpgradeWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
     HitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBox"));
     HitBox->SetupAttachment(Mesh);
@@ -39,13 +52,11 @@ void ABaseBuilding::PostInitializeComponents()
     {
         Component->SetCollisionResponseToChannel(Collision::UnitHitTarget, Component == HitBox ? ECR_Overlap : ECR_Ignore);
     }
-    if (HitBox->GetCollisionEnabled() == ECollisionEnabled::NoCollision)
+    bool bQuery, bPhysics, bProbe;
+    CollisionEnabledToFlags(HitBox->GetCollisionEnabled(), bQuery, bPhysics, bProbe);
+    if (!bQuery)
     {
-        HitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    }
-    else if (HitBox->GetCollisionEnabled() == ECollisionEnabled::PhysicsOnly)
-    {
-        HitBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        HitBox->SetCollisionEnabled(CollisionEnabledFromFlags(true, bPhysics, bProbe));
     }
 }
 
@@ -75,15 +86,10 @@ void ABaseBuilding::OnDeath()
     {
         return;
     }
-    bIsDead = true;
+    ApplyConstructionState(false, Construction->GetDestroyedMesh());
+    OnBuildingDestroyed();
+    Construction->CancelConstruction();
     DeathDelegate.Broadcast();
-    Mesh->SetStaticMesh(nullptr);
-    if (UUserWidget* const Widget = WidgetComponent->GetWidget(); IsValid(Widget))
-    {
-        Widget->SetVisibility(ESlateVisibility::Collapsed);
-    }
-    GetWorld()->GetSubsystem<UWorldGridSubsystem>()->UnRegisterActor(this);
-    GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &ThisClass::OnDeathTimerElapsed, TimeBeforeDestroy);
 }
 
 FDeathDelegate& ABaseBuilding::GetDeathDelegate()
@@ -108,9 +114,10 @@ FIntVector2 ABaseBuilding::GetSize() const
 
 void ABaseBuilding::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
 {
-    if (HealthWidget.IsValid())
+    if (HealthWidget.IsValid() && IsValid(AttributeSet))
     {
-        HealthWidget->SetPercent(OnAttributeChangeData.NewValue / AttributeSet->GetMaxHealth());
+        const float MaxHealth = AttributeSet->GetMaxHealth();
+        HealthWidget->SetPercent(MaxHealth > 0.f ? FMath::Clamp(OnAttributeChangeData.NewValue / MaxHealth, 0.f, 1.f) : 0.f);
     }
 
     if (OnAttributeChangeData.NewValue <= 0.f)
@@ -123,12 +130,27 @@ void ABaseBuilding::BeginPlay()
 {
     Super::BeginPlay();
 
+    Construction->ApplyBuildingState.BindUObject(this, &ThisClass::ApplyConstructionState);
+    Mesh->SetMobility(EComponentMobility::Movable);
+    Mesh->SetStaticMesh(Construction->GetStartingMesh());
+
     OccupiedCells = UWorldGridFunctionLibrary::GetOccupiedCells(this, GetComponentsBoundingBox());
     AdjacentCells = UWorldGridFunctionLibrary::GetAdjacentCells(this, GetComponentsBoundingBox());
-    GetWorld()->GetSubsystem<UWorldGridSubsystem>()->RegisterActor(this);
 
+    if (UWorldGridSubsystem* Grid = Utils::GetWorldSubsystem<UWorldGridSubsystem>(this); IsValid(Grid))
+    {
+        Grid->RegisterActor(this);
+    }
+
+    AbilitySystemComponent->InitAbilityActorInfo(this, this);
     AttributeSet = AbilitySystemComponent->GetSet<UBuildingAttributeSet>();
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBuildingAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+
+    if (UBuildingUpgradeWidget* Widget = Cast<UBuildingUpgradeWidget>(UpgradeWidget->GetWidget()); IsValid(Widget))
+    {
+        Widget->ConstructionTarget.BindWeakLambda(this, [this] { return this; });
+        Widget->ConstructionCost.BindWeakLambda(this, [this] { return AttributeSet->GetConstructionCost(); });
+    }
 
     if (HealthWidget = Cast<UProgressBarWidget>(WidgetComponent->GetWidget()); HealthWidget.IsValid())
     {
@@ -136,8 +158,49 @@ void ABaseBuilding::BeginPlay()
     }
 }
 
-void ABaseBuilding::OnDeathTimerElapsed()
+void ABaseBuilding::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
-    Destroy();
+    if (UWorldGridSubsystem* Grid = Utils::GetWorldSubsystem<UWorldGridSubsystem>(this); IsValid(Grid))
+    {
+        Grid->UnRegisterActor(this);
+    }
+    Construction->ApplyBuildingState.Unbind();
+    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBuildingAttributeSet::GetHealthAttribute()).RemoveAll(this);
+    Super::EndPlay(EndPlayReason);
+}
+
+void ABaseBuilding::ApplyConstructionState(bool bActive, UStaticMesh* StageMesh)
+{
+    const bool bWasDead = bIsDead;
+    bIsDead = !bActive;
+    Mesh->SetStaticMesh(StageMesh);
+    // Ruins keep their footprint and physical collision until the actor leaves the world.
+    WidgetComponent->SetVisibility(bActive);
+    if (UUserWidget* Widget = WidgetComponent->GetWidget(); IsValid(Widget))
+    {
+        Widget->SetVisibility(bActive ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+    }
+    if (!bActive)
+    {
+        StimuliSource->UnregisterFromPerceptionSystem();
+        return;
+    }
+    if (bWasDead)
+    {
+        if (IsValid(AttributeSet))
+        {
+            AbilitySystemComponent->SetNumericAttributeBase(UBuildingAttributeSet::GetHealthAttribute(), AttributeSet->GetMaxHealth());
+        }
+        StimuliSource->RegisterWithPerceptionSystem();
+    }
+}
+
+void ABaseBuilding::StartConstruction()
+{
+    Construction->StartConstruction();
+}
+
+bool ABaseBuilding::CanStartConstruction() const
+{
+    return Construction->CanStartConstruction();
 }

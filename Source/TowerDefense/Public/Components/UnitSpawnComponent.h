@@ -19,6 +19,7 @@ public:
     void EnqueueSpawn(TSubclassOf<ATowerDefenseAICharacter> NewClass);
     void SetSpawnInterval(float NewInterval);
     bool CanSpawnUnit() const;
+    void CancelPendingSpawn();
 
     FUnitSpawned UnitStartSpawn;
 

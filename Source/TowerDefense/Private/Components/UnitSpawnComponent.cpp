@@ -20,6 +20,15 @@ bool UUnitSpawnComponent::CanSpawnUnit() const
     return !bIsOccupied && !Handle.IsValid() && IsValid(UnitClass);
 }
 
+void UUnitSpawnComponent::CancelPendingSpawn()
+{
+    UnitClass = nullptr;
+    if (const UWorld* World = GetWorld(); IsValid(World))
+    {
+        World->GetTimerManager().ClearTimer(Handle);
+    }
+}
+
 void UUnitSpawnComponent::BeginPlay()
 {
     Super::BeginPlay();

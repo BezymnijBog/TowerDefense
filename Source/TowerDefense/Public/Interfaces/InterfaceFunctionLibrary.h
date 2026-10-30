@@ -45,4 +45,7 @@ public:
     static const TArray<FIntVector2>& GetOccupiedCells(const AActor* Actor);
     static const TArray<FIntVector2>& GetAdjacentCells(const AActor* Actor);
     static FIntVector2 GetSize(const AActor* Actor);
+
+    static bool CanStartConstruction(const AActor* Actor);
+    static void StartConstruction(AActor* Actor);
 };

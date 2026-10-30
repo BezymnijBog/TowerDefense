@@ -29,6 +29,7 @@ public class TowerDefenseTests : ModuleRules
                 "AIModule",
                 "GameplayAbilities",
                 "GameplayTags",
+                "UMG",
                 "TowerDefense"
             });
     }

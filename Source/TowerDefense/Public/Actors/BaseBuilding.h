@@ -9,10 +9,11 @@
 #include "GenericTeamAgentInterface.h"
 #include "Interfaces/CellPlacedInterface.h"
 #include "Interfaces/DeathInterface.h"
+#include "Interfaces/ConstructionTarget.h"
 #include "BaseBuilding.generated.h"
 
 class UAIPerceptionStimuliSourceComponent;
-class UAttackSlotComponent;
+class UBuildingConstructionComponent;
 class UBoxComponent;
 class UBuildingAttributeSet;
 class UProgressBarWidget;
@@ -24,7 +25,8 @@ class TOWERDEFENSE_API ABaseBuilding :
     public IAbilitySystemInterface,
     public IGenericTeamAgentInterface,
     public IDeathInterface,
-    public ICellPlacedInterface
+    public ICellPlacedInterface,
+    public IConstructionTarget
 {
     GENERATED_BODY()
 
@@ -44,11 +46,27 @@ public:
     virtual const TArray<FIntVector2>& GetOccupiedCells() const override;
     virtual FIntVector2 GetSize() const override;
 
+    UBuildingConstructionComponent* GetConstructionComponent() const { return Construction; }
+    virtual void StartConstruction() override;
+    virtual bool CanStartConstruction() const override;
+
 protected:
+    void ApplyConstructionState(bool bActive, UStaticMesh* StageMesh);
+
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UBuildingConstructionComponent> Construction;
+
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UWidgetComponent> UpgradeWidget;
+
     void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+
+    // Called once after the building becomes ruins, before notifying death listeners.
+    virtual void OnBuildingDestroyed() {}
 
     virtual void BeginPlay() override;
     virtual void PostInitializeComponents() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UBoxComponent> HitBox;
@@ -74,11 +92,8 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
     FGenericTeamId TeamId;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "BaseBuilding")
     bool bIsDead = false;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
-    float TimeBeforeDestroy = 2.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BaseBuilding")
     float AttackSlotRadius = 34.0f;
@@ -96,8 +111,5 @@ protected:
     FIntVector2 CellsSize = { 1, 1 };
 
 private:
-    void OnDeathTimerElapsed();
-
     FDeathDelegate DeathDelegate;
-    FTimerHandle DeathTimerHandle;
 };

@@ -9,6 +9,7 @@
 
 class AWayActor;
 enum class EWaveType;
+enum class ERunPhase : uint8;
 class UWaveSetTemplateDataAsset;
 
 UCLASS()
@@ -31,13 +32,9 @@ protected:
 
     void OnWaveCleared();
     void ResolveVictory();
-    void OnDefendedBuildingLost();
+    void OnRunPhaseChanged(ERunPhase Phase);
     bool bWavePrepared = false;
     bool bWaveActive = false;
-
-    // Assign the settlement centre placed on this map.
-    UPROPERTY(EditInstanceOnly, Category = WavesManager)
-    TObjectPtr<class ABaseBuilding> DefendedBuilding;
 
     UPROPERTY(EditDefaultsOnly, Category = WavesManager)
     TMap<EWaveType, UWaveSetTemplateDataAsset*> WaveDataAssets;

@@ -27,6 +27,7 @@ public:
     bool CanSpawnUnit(const FVector& SpawnLocation) const;
 
     void SetWaveDefinition(FWaveDefinition NewDefinition);
+    void CancelWave();
 
     FWaveIsOverDelegate WaveIsOver;
 

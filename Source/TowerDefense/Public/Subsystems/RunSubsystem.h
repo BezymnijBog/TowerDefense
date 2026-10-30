@@ -79,6 +79,7 @@ struct FRunState
 DECLARE_MULTICAST_DELEGATE_OneParam(FDayChoiceGenerated, const TArray<FDayChoice>&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FRunPhaseChanged, ERunPhase);
 DECLARE_MULTICAST_DELEGATE_OneParam(FRunCombatWon, int32);
+DECLARE_MULTICAST_DELEGATE(FRunDayEnded);
 
 class AWavesManager;
 
@@ -91,6 +92,8 @@ public:
     FDayChoiceGenerated DayChoiceGenerated;
     FRunPhaseChanged OnPhaseChanged;
     FRunCombatWon OnCombatWon;
+    FRunDayEnded OnDayEnded;
+    bool IsAdvancingDay() const { return bAdvancingDay; }
 
     void StartNewRun();
     void GenerateDayChoices();
@@ -141,4 +144,5 @@ private:
     TObjectPtr<UDayChoiceDataAsset> DayChoiceAsset;
 
     FRandomStream RandomStream;
+    bool bAdvancingDay = false;
 };

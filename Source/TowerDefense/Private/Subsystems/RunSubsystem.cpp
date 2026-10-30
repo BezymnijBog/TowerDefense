@@ -183,6 +183,12 @@ void URunSubsystem::NotifyCombatWon()
 
 bool URunSubsystem::AdvanceDay()
 {
+    if (RunState.Phase != ERunPhase::PostEvent || bAdvancingDay)
+    {
+        return false;
+    }
+    TGuardValue<bool> Guard(bAdvancingDay, true);
+    OnDayEnded.Broadcast();
     if (RunState.Phase != ERunPhase::PostEvent)
     {
         return false;
@@ -258,6 +264,7 @@ void URunSubsystem::Deinitialize()
     DayChoiceGenerated.Clear();
     OnPhaseChanged.Clear();
     OnCombatWon.Clear();
+    OnDayEnded.Clear();
     Super::Deinitialize();
 }
 

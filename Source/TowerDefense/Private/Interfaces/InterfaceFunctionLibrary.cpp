@@ -8,6 +8,7 @@
 #include "Components/WayComponent.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Interfaces/CellPlacedInterface.h"
+#include "Interfaces/ConstructionTarget.h"
 #include "Interfaces/DeathInterface.h"
 #include "Interfaces/HireElementInterface.h"
 #include "Interfaces/ShooterInterface.h"
@@ -192,4 +193,22 @@ FIntVector2 UInterfaceFunctionLibrary::GetSize(const AActor* Actor)
     }
 
     return {};
+}
+
+bool UInterfaceFunctionLibrary::CanStartConstruction(const AActor* Actor)
+{
+    if (const IConstructionTarget* AsInterface = Cast<IConstructionTarget>(Actor); AsInterface)
+    {
+        return AsInterface->CanStartConstruction();
+    }
+
+    return {};
+}
+
+void UInterfaceFunctionLibrary::StartConstruction(AActor* Actor)
+{
+    if (IConstructionTarget* AsInterface = Cast<IConstructionTarget>(Actor); AsInterface)
+    {
+        AsInterface->StartConstruction();
+    }
 }

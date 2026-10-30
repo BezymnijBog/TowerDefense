@@ -18,7 +18,13 @@ public:
     GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBuildingAttributeSet, MaxHealth)
     GAMEPLAYATTRIBUTE_VALUE_GETTER(MaxHealth)
 
+    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UBuildingAttributeSet, ConstructionCost)
+    GAMEPLAYATTRIBUTE_VALUE_GETTER(ConstructionCost)
+
 protected:
+    UPROPERTY(EditDefaultsOnly, Category = "Construction", meta = (ClampMin = "0"))
+    FGameplayAttributeData ConstructionCost = 100.f;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     FGameplayAttributeData Health;
 

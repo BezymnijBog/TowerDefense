@@ -26,3 +26,5 @@ UE_DEFINE_GAMEPLAY_TAG_COMMENT(Mode_Placement_Start, TEXT("Mode.Placement.Start"
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Mode_Placement_End, TEXT("Mode.Placement.End"), "Tag for placement mode end");
 
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(Character_State_Dead, TEXT("Character.State.Dead"), "Tag for dead character");
+
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Action_Building_Construct, TEXT("Action.Building.Construct"), "Request construction or upgrade of a target");
