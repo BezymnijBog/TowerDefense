@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class UInputAction;
+class UInputMappingContext;
 
 struct FInputActionValue;
 
@@ -19,11 +20,10 @@ class TOWERDEFENSE_API ACameraPawn : public ADefaultPawn
 public:
     explicit ACameraPawn(const FObjectInitializer& ObjectInitializer);
 
-    virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 protected:
-    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UCameraComponent> CameraComponent;
@@ -31,6 +31,21 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> MoveAction;
 
+    UPROPERTY(EditDefaultsOnly)
+    TObjectPtr<UInputAction> PanActivation;
+
+    UPROPERTY(EditDefaultsOnly)
+    TObjectPtr<UInputAction> PanMove;
+
 private:
     void AddMovement(const FInputActionValue& Input);
+    void UpdatePan(const FInputActionValue& Input);
+
+    void BeginPan();
+    void EndPan();
+    bool ProjectToPanPlane(const FVector2D& ScreenPosition, FVector& WorldPosition) const;
+
+    FPlane PanPlane;
+    FVector2D OldScreenPosition = FVector2D::ZeroVector;
+    bool bPanning = false;
 };

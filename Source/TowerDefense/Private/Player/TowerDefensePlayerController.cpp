@@ -45,7 +45,7 @@ void ATowerDefensePlayerController::SetupInputComponent()
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
         Subsystem->AddMappingContext(MovementMappingContext, 0);
-        Subsystem->AddMappingContext(CommonMappingContext, 0);
+        Subsystem->AddMappingContext(CommonMappingContext, -1);
     }
 
     if (UEnhancedInputComponent* const EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent); IsValid(EnhancedInput))

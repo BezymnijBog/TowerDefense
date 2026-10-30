@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerController.h"
-#include "Templates/SubclassOf.h"
 #include "Utils/BaseUtils.h"
 #include "TowerDefensePlayerController.generated.h"
 
