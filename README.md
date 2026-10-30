@@ -42,11 +42,12 @@ Current technical goals include:
 - Resource economy
 - Wave spawn system
 - Run system
+- Minor AI improvements
+- Building construction system
 
 ## Roadmap
 
 Near-term:
-- AI improvements
 - Better camera controls
 
 Future:
