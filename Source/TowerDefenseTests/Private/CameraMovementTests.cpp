@@ -4,9 +4,13 @@
 
 #include "Components/ActorTestSpawner.h"
 #include "Components/CameraPawnMovement.h"
+#include "Components/SceneComponent.h"
 #include "CQTest.h"
 #include "EnhancedInputComponent.h"
 #include "InputAction.h"
+#include "Camera/CameraComponent.h"
+#include "Game/TowerDefenseGameMode.h"
+#include "GameFramework/PlayerStart.h"
 #include "UObject/UnrealType.h"
 #include "GameFramework/PlayerController.h"
 #include "Player/CameraPawn.h"
@@ -51,6 +55,46 @@ TEST_CLASS_WITH_FLAGS(FCameraMovementTest, "TowerDefense.Camera", EAutomationTes
             Step();
         }
         ASSERT_THAT(IsTrue(Movement->Velocity.IsZero()));
+    }
+
+    TEST_METHOD(PitchLimitsAndMovementAxes)
+    {
+        CheckPlayerStartPitch();
+        Pawn->SetActorRotation(FRotator(0.f, 90.f, 0.f));
+        Pawn->SetCameraPitch(90.f);
+        ASSERT_THAT(IsNear(-80.f, static_cast<float>(Pawn->GetActorRotation().Pitch), 0.01f));
+        Pawn->SetCameraPitch(0.f);
+        ASSERT_THAT(IsNear(-30.f, static_cast<float>(Pawn->GetActorRotation().Pitch), 0.01f));
+        for (const float Pitch : { 30.f, 60.f, 80.f })
+        {
+            Pawn->SetCameraPitch(Pitch);
+            Pawn->MoveForward(1.f);
+            ASSERT_THAT(IsTrue(Movement->ConsumeInputVector().Equals(FVector::RightVector, 0.001)));
+            Pawn->MoveRight(1.f);
+            ASSERT_THAT(IsTrue(Movement->ConsumeInputVector().Equals(-FVector::ForwardVector, 0.001)));
+            Pawn->MoveUp_World(1.f);
+            ASSERT_THAT(IsTrue(Movement->ConsumeInputVector().Equals(FVector::UpVector, 0.001)));
+        }
+    }
+
+    void CheckPlayerStartPitch()
+    {
+        ATowerDefenseGameMode& GameMode = Spawner.SpawnActor<ATowerDefenseGameMode>();
+        GameMode.DefaultPawnClass = ACameraPawn::StaticClass();
+        APlayerStart& Start = Spawner.SpawnActor<APlayerStart>();
+        Start.GetRootComponent()->SetMobility(EComponentMobility::Movable);
+        Start.SetActorLocation(FVector(1000., 2000., 3000.));
+        Start.SetActorRotation(FRotator(-60.f, 45.f, 0.f));
+        ASSERT_THAT(IsNear(-60.f, static_cast<float>(Start.GetActorRotation().Pitch), 0.01f));
+        APlayerController& Controller = Spawner.SpawnActor<APlayerController>();
+        Controller.SetAsLocalPlayerController();
+        GameMode.RestartPlayerAtPlayerStart(&Controller, &Start);
+        APawn* SpawnedPawn = Controller.GetPawn();
+        ASSERT_THAT(IsNotNull(SpawnedPawn));
+        ASSERT_THAT(IsTrue(SpawnedPawn->GetActorRotation().Equals(Start.GetActorRotation(), 0.01)));
+        UCameraComponent* Camera = SpawnedPawn->FindComponentByClass<UCameraComponent>();
+        ASSERT_THAT(IsNotNull(Camera));
+        ASSERT_THAT(IsTrue(Camera->GetComponentRotation().Equals(Start.GetActorRotation(), 0.01)));
     }
 
     TEST_METHOD(DirectMovementCoastsButHoldingStillStopsIt)

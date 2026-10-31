@@ -37,21 +37,36 @@ ACameraPawn::ACameraPawn(const FObjectInitializer& ObjectInitializer) :
     CameraPawnMovement = CastChecked<UCameraPawnMovement>(MovementComponent);
 }
 
+void ACameraPawn::SetCameraPitch(float AngleBelowHorizon)
+{
+    FRotator Rotation = GetActorRotation();
+    Rotation.Pitch = -FMath::Clamp(AngleBelowHorizon, CameraMinPitch, CameraMaxPitch);
+    Rotation.Roll = 0.f;
+    SetActorRotation(Rotation);
+}
+
 void ACameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     if (UEnhancedInputComponent* const EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent); IsValid(EnhancedInput))
     {
         EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::AddMovement);
+
         EnhancedInput->BindAction(PanMove, ETriggerEvent::Triggered, this, &ThisClass::UpdatePan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Started, this, &ThisClass::BeginPan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Completed, this, &ThisClass::EndPan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Canceled, this, &ThisClass::CancelPan);
+
+        EnhancedInput->BindAction(PitchKeyboard, ETriggerEvent::Triggered, this, &ThisClass::UpdateKeyboardPitch);
+        EnhancedInput->BindAction(PitchActivation, ETriggerEvent::Started, this, &ThisClass::BeginTilt);
+        EnhancedInput->BindAction(PitchActivation, ETriggerEvent::Completed, this, &ThisClass::EndTilt);
+        EnhancedInput->BindAction(PitchActivation, ETriggerEvent::Canceled, this, &ThisClass::EndTilt);
+        EnhancedInput->BindAction(PitchMouse, ETriggerEvent::Triggered, this, &ThisClass::UpdateMousePitch);
     }
 }
 
 void ACameraPawn::AddMovement(const FInputActionValue& Input)
 {
-    if (bPanning)
+    if (MovementMode != ECameraMovementMode::None)
     {
         return;
     }
@@ -62,9 +77,27 @@ void ACameraPawn::AddMovement(const FInputActionValue& Input)
     MoveUp_World(MoveVector.Z);
 }
 
+void ACameraPawn::MoveForward(float Value)
+{
+    const FRotator HorizontalRotation(0.f, CameraComponent->GetComponentRotation().Yaw, 0.f);
+    AddMovementInput(HorizontalRotation.Vector(), Value);
+}
+
+void ACameraPawn::MoveRight(float Value)
+{
+    const FRotationMatrix HorizontalRotation(FRotator(0.f, CameraComponent->GetComponentRotation().Yaw, 0.f));
+    AddMovementInput(HorizontalRotation.GetUnitAxis(EAxis::Y), Value);
+}
+
+void ACameraPawn::BeginPlay()
+{
+    Super::BeginPlay();
+    check(CameraMinPitch < CameraMaxPitch);
+}
+
 void ACameraPawn::UpdatePan(const FInputActionValue& Input)
 {
-    if (!bPanning)
+    if (!EnumHasAnyFlags(MovementMode, ECameraMovementMode::Panning))
     {
         BeginPan();
         return;
@@ -80,30 +113,59 @@ void ACameraPawn::UpdatePan(const FInputActionValue& Input)
     }
 }
 
+void ACameraPawn::UpdateKeyboardPitch(const FInputActionValue& Input)
+{
+    if (MovementMode == ECameraMovementMode::None)
+    {
+        SetCameraPitch(-GetActorRotation().Pitch + Input.Get<float>() * KeyboardPitchSpeed * GetWorld()->GetDeltaSeconds());
+    }
+}
+
+void ACameraPawn::UpdateMousePitch(const FInputActionValue& Input)
+{
+    BeginTilt();
+    SetCameraPitch(-GetActorRotation().Pitch + Input.Get<float>() * MousePitchSensitivity);
+}
+
+void ACameraPawn::BeginTilt()
+{
+    if (!EnumHasAnyFlags(MovementMode, ECameraMovementMode::Tilting))
+    {
+        CancelPan();
+        MovementMode |= ECameraMovementMode::Tilting;
+    }
+}
+
+void ACameraPawn::EndTilt()
+{
+    MovementMode &= ~ECameraMovementMode::Tilting;
+}
+
 void ACameraPawn::BeginPan()
 {
     const APlayerController* PlayerOwner = GetController<APlayerController>();
-    if (bPanning || !IsValid(PlayerOwner))
+    if (MovementMode != ECameraMovementMode::None || !IsValid(PlayerOwner))
     {
         return;
     }
 
     CancelPan();
-    if (bPanning = GetPanPlane(PlayerOwner, PanPlane) && PlayerOwner->GetMousePosition(OldScreenPosition.X, OldScreenPosition.Y); bPanning)
+    if (GetPanPlane(PlayerOwner, PanPlane) && PlayerOwner->GetMousePosition(OldScreenPosition.X, OldScreenPosition.Y))
     {
+        MovementMode |= ECameraMovementMode::Panning;
         CameraPawnMovement->BeginDirectMovement();
     }
 }
 
 void ACameraPawn::EndPan()
 {
-    bPanning = false;
+    MovementMode &= ~ECameraMovementMode::Panning;
     CameraPawnMovement->EndDirectMovement();
 }
 
 void ACameraPawn::CancelPan()
 {
-    bPanning = false;
+    MovementMode &= ~ECameraMovementMode::Panning;
     MovementComponent->StopMovementImmediately();
 }
 
@@ -116,6 +178,7 @@ bool ACameraPawn::ProjectToPanPlane(const FVector2D& ScreenPosition, FVector& Wo
         return false;
     }
 
-    WorldPosition = FMath::RayPlaneIntersection(Position, Direction, PanPlane);
-    return true;
+    const double IntersectionDist = FMath::RayPlaneIntersectionParam(Position, Direction, PanPlane);
+    WorldPosition = Position + Direction * IntersectionDist;
+    return FMath::IsFinite(IntersectionDist) && IntersectionDist > 0;
 }

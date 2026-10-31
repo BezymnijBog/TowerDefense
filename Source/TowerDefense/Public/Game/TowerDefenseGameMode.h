@@ -13,4 +13,7 @@ UCLASS()
 class TOWERDEFENSE_API ATowerDefenseGameMode : public AGameMode
 {
     GENERATED_BODY()
+
+public:
+    virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
 };
