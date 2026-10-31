@@ -26,6 +26,7 @@ public class TowerDefenseTests : ModuleRules
                 "CoreUObject",
                 "CQTest",
                 "Engine",
+                "EnhancedInput",
                 "AIModule",
                 "GameplayAbilities",
                 "GameplayTags",

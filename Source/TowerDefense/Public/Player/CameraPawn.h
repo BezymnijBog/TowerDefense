@@ -6,9 +6,9 @@
 #include "GameFramework/DefaultPawn.h"
 #include "CameraPawn.generated.h"
 
+class UCameraPawnMovement;
 class UCameraComponent;
 class UInputAction;
-class UInputMappingContext;
 
 struct FInputActionValue;
 
@@ -23,18 +23,19 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 protected:
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UCameraComponent> CameraComponent;
+
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UCameraPawnMovement> CameraPawnMovement;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> MoveAction;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> PanActivation;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> PanMove;
 
 private:
@@ -43,6 +44,7 @@ private:
 
     void BeginPan();
     void EndPan();
+    void CancelPan();
     bool ProjectToPanPlane(const FVector2D& ScreenPosition, FVector& WorldPosition) const;
 
     FPlane PanPlane;
