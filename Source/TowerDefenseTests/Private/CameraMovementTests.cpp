@@ -25,6 +25,7 @@ TEST_CLASS_WITH_FLAGS(FCameraMovementTest, "TowerDefense.Camera", EAutomationTes
     {
         Pawn = &Spawner.SpawnActor<ACameraPawn>();
         Pawn->SetActorEnableCollision(false);
+        Pawn->SetActorLocation(FVector(0., 0., 1000.));
         APlayerController& Controller = Spawner.SpawnActor<APlayerController>();
         Controller.SetAsLocalPlayerController();
         Controller.Possess(Pawn);
@@ -55,10 +56,36 @@ TEST_CLASS_WITH_FLAGS(FCameraMovementTest, "TowerDefense.Camera", EAutomationTes
             Step();
         }
         ASSERT_THAT(IsTrue(Movement->Velocity.IsZero()));
+        CheckHeightLimits();
+    }
+
+    void CheckHeightLimits()
+    {
+        const float MinHeight = Movement->GetMinHeight();
+        const float MaxHeight = Movement->GetMaxHeight();
+        for (const double Direction : { -1., 1. })
+        {
+            Movement->BeginDirectMovement();
+            Movement->AddInputVector(FVector(10., 0., Direction * 2000.));
+            Step();
+            const double Limit = Direction < 0. ? MinHeight : MaxHeight;
+            ASSERT_THAT(IsNear(Limit, Pawn->GetActorLocation().Z, 0.01));
+            ASSERT_THAT(IsNear(0., Movement->Velocity.Z, 0.01));
+            ASSERT_THAT(IsTrue(Movement->Velocity.X > 0.));
+            Movement->EndDirectMovement();
+            Movement->Velocity.Z = Direction * 600.;
+            Step();
+            ASSERT_THAT(IsNear(Limit, Pawn->GetActorLocation().Z, 0.01));
+            ASSERT_THAT(IsNear(0., Movement->Velocity.Z, 0.01));
+            Pawn->MoveUp_World(-Direction);
+            Step();
+            ASSERT_THAT(IsTrue((Pawn->GetActorLocation().Z - Limit) * Direction < 0.));
+        }
     }
 
     TEST_METHOD(PitchLimitsAndMovementAxes)
     {
+        CheckAdaptiveZoom();
         CheckPlayerStartPitch();
         Pawn->SetActorRotation(FRotator(0.f, 90.f, 0.f));
         Pawn->SetCameraPitch(90.f);
@@ -75,6 +102,46 @@ TEST_CLASS_WITH_FLAGS(FCameraMovementTest, "TowerDefense.Camera", EAutomationTes
             Pawn->MoveUp_World(1.f);
             ASSERT_THAT(IsTrue(Movement->ConsumeInputVector().Equals(FVector::UpVector, 0.001)));
         }
+    }
+
+    void CheckAdaptiveZoom()
+    {
+        UInputAction* Action = NewObject<UInputAction>(Pawn);
+        Action->ValueType = EInputActionValueType::Axis1D;
+        FindFProperty<FObjectProperty>(ACameraPawn::StaticClass(), TEXT("ZoomAction"))->SetObjectPropertyValue_InContainer(Pawn, Action);
+        UEnhancedInputComponent* Input = NewObject<UEnhancedInputComponent>(Pawn);
+        Pawn->SetupPlayerInputComponent(Input);
+        struct FZoomInput : FInputActionInstance
+        {
+            explicit FZoomInput(UInputAction* Action) : FInputActionInstance(Action)
+            {
+                Value = FInputActionValue(1.f);
+                TriggerEvent = ETriggerEvent::Triggered;
+            }
+        };
+        for (const double Height : { 500., 2000. })
+        {
+            Pawn->SetActorLocation(FVector(0., 0., Height));
+            for (const auto& Binding : Input->GetActionEventBindings())
+            {
+                if (Binding->GetAction() == Action && Binding->GetTriggerEvent() == ETriggerEvent::Triggered)
+                {
+                    Binding->Execute(FZoomInput(Action));
+                }
+            }
+            Step();
+            ASSERT_THAT(IsNear(Height * 1.1, Pawn->GetActorLocation().Z, 0.01));
+            for (const auto& Binding : Input->GetActionEventBindings())
+            {
+                if (Binding->GetAction() == Action && Binding->GetTriggerEvent() == ETriggerEvent::Completed)
+                {
+                    Binding->Execute(FInputActionInstance(Action));
+                }
+            }
+            Step();
+            ASSERT_THAT(IsTrue(Pawn->GetActorLocation().Z > Height * 1.1));
+        }
+        Movement->StopMovementImmediately();
     }
 
     void CheckPlayerStartPitch()

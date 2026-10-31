@@ -51,6 +51,10 @@ void ACameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
     {
         EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::AddMovement);
 
+        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &ThisClass::UpdateZoom);
+        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Completed, this, &ThisClass::EndZoom);
+        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Canceled, this, &ThisClass::EndZoom);
+
         EnhancedInput->BindAction(PanMove, ETriggerEvent::Triggered, this, &ThisClass::UpdatePan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Started, this, &ThisClass::BeginPan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Completed, this, &ThisClass::EndPan);
@@ -127,11 +131,24 @@ void ACameraPawn::UpdateMousePitch(const FInputActionValue& Input)
     SetCameraPitch(-GetActorRotation().Pitch + Input.Get<float>() * MousePitchSensitivity);
 }
 
+void ACameraPawn::UpdateZoom(const FInputActionValue& Input)
+{
+    if (EnumHasAnyFlags(MovementMode, ~ECameraMovementMode::Zoom))
+    {
+        return;
+    }
+    MovementMode |= ECameraMovementMode::Zoom;
+    CameraPawnMovement->BeginDirectMovement();
+    const double HeightScale = FMath::Max(GetActorLocation().Z, 1.) / FMath::Max(ZoomReferenceHeight, 1.f);
+    CameraPawnMovement->AddInputVector(FVector::UpVector * Input.Get<float>() * ZoomSensitivity * HeightScale);
+}
+
 void ACameraPawn::BeginTilt()
 {
     if (!EnumHasAnyFlags(MovementMode, ECameraMovementMode::Tilting))
     {
         CancelPan();
+        EndZoom();
         MovementMode |= ECameraMovementMode::Tilting;
     }
 }
@@ -167,6 +184,12 @@ void ACameraPawn::CancelPan()
 {
     MovementMode &= ~ECameraMovementMode::Panning;
     MovementComponent->StopMovementImmediately();
+}
+
+void ACameraPawn::EndZoom()
+{
+    MovementMode &= ~ECameraMovementMode::Zoom;
+    CameraPawnMovement->EndDirectMovement();
 }
 
 bool ACameraPawn::ProjectToPanPlane(const FVector2D& ScreenPosition, FVector& WorldPosition) const

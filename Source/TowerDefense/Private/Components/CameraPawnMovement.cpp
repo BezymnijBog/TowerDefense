@@ -2,6 +2,12 @@
 
 #include "Components/CameraPawnMovement.h"
 
+void UCameraPawnMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    ClampMovementHeight();
+}
+
 void UCameraPawnMovement::BeginDirectMovement()
 {
     StopMovementImmediately();
@@ -57,4 +63,20 @@ void UCameraPawnMovement::ApplyInertiaMovement(float DeltaTime)
         Velocity = FVector::ZeroVector;
     }
     ConsumeInputVector();
+}
+
+void UCameraPawnMovement::ClampMovementHeight()
+{
+    if (!IsValid(UpdatedComponent))
+    {
+        return;
+    }
+
+    if (FVector Location = UpdatedComponent->GetComponentLocation(); !FMath::IsWithin(Location.Z, MinHeight, MaxHeight))
+    {
+        Location.Z = FMath::Clamp(Location.Z, MinHeight, MaxHeight);
+        UpdatedComponent->SetWorldLocation(Location);
+        Velocity.Z = 0.;
+        UpdateComponentVelocity();
+    }
 }

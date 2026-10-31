@@ -16,7 +16,8 @@ enum class ECameraMovementMode : uint8
 {
     None = 0,
     Panning = 1 << 0,
-    Tilting = 1 << 1
+    Tilting = 1 << 1,
+    Zoom = 1 << 2
 };
 ENUM_CLASS_FLAGS(ECameraMovementMode);
 
@@ -36,6 +37,12 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Camera|Zoom", meta = (ClampMin = "0", Units = "cm"))
+    float ZoomSensitivity = 100.f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Camera|Zoom", meta = (ClampMin = "1", Units = "cm"))
+    float ZoomReferenceHeight = 1000.f;
 
     UPROPERTY(EditDefaultsOnly, Category = "Camera|Pitch", meta = (ClampMin = "0"))
     float KeyboardPitchSpeed = 40.f;
@@ -73,11 +80,15 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> PitchMouse;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> ZoomAction;
+
 private:
     void AddMovement(const FInputActionValue& Input);
     void UpdatePan(const FInputActionValue& Input);
     void UpdateKeyboardPitch(const FInputActionValue& Input);
     void UpdateMousePitch(const FInputActionValue& Input);
+    void UpdateZoom(const FInputActionValue& Input);
 
     void BeginTilt();
     void EndTilt();
@@ -85,6 +96,8 @@ private:
     void BeginPan();
     void EndPan();
     void CancelPan();
+
+    void EndZoom();
 
     bool ProjectToPanPlane(const FVector2D& ScreenPosition, FVector& WorldPosition) const;
 
