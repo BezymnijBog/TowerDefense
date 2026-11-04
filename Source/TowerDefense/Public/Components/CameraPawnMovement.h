@@ -15,11 +15,10 @@ public:
     void BeginDirectMovement();
     void EndDirectMovement();
 
-    float GetMaxHeight() const { return MaxHeight; }
-    float GetMinHeight() const { return MinHeight; }
+    float ConsumeVerticalInput();
 
+    virtual FVector ConsumeInputVector() override;
     virtual void StopMovementImmediately() override;
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
     virtual void ApplyControlInputToVelocity(float DeltaTime) override;
@@ -33,15 +32,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Camera|Movement", meta = (ClampMin = "0.0001", ClampMax = "10.0", Units = "cm/s"))
     float InertiaStopSpeed = 1.0f;
 
-    UPROPERTY(EditAnywhere, Category = "Camera|Height", meta = (Units = "cm"))
-    float MinHeight = 100.f;
-
-    UPROPERTY(EditAnywhere, Category = "Camera|Height", meta = (Units = "cm"))
-    float MaxHeight = 10000.f;
-
 private:
-    void ClampMovementHeight();
-
     bool bDirectMovement = false;
     bool bEndDirectMovement = false;
+
+    float VerticalInput = 0.0;
 };

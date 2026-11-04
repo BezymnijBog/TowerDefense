@@ -4,23 +4,16 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/CameraPawnMovement.h"
+#include "Components/CameraRotatingMovement.h"
+#include "Components/SphereComponent.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "InputAction.h"
 
 namespace
 {
-bool GetPanPlane(const APlayerController* Controller, FPlane& OutPlane)
-{
-    if (FHitResult Hit; IsValid(Controller) && Controller->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
-    {
-        OutPlane = { Hit.ImpactPoint, FVector::UpVector };
-        return true;
-    }
-    return false;
-}
-
 bool DeprojectScreenPositionToWorld(const APlayerController* Controller, const FVector2D& ScreenPosition, FVector& Position, FVector& Direction)
 {
     return IsValid(Controller) && Controller->DeprojectScreenPositionToWorld(ScreenPosition.X, ScreenPosition.Y, Position, Direction);
@@ -31,18 +24,26 @@ ACameraPawn::ACameraPawn(const FObjectInitializer& ObjectInitializer) :
     Super(ObjectInitializer.SetDefaultSubobjectClass(MovementComponentName, UCameraPawnMovement::StaticClass()))
 {
     PrimaryActorTick.bCanEverTick = true;
+    bAddDefaultMovementBindings = false;
+
+    GetCollisionComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetCollisionComponent()->SetGenerateOverlapEvents(false);
+    SetActorEnableCollision(false);
+
+    CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+    CameraBoom->SetupAttachment(GetRootComponent());
+    CameraBoom->bDoCollisionTest = false;
+    CameraBoom->bUsePawnControlRotation = false;
+
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-    CameraComponent->SetupAttachment(GetRootComponent());
+    CameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+    CameraComponent->bUsePawnControlRotation = false;
 
     CameraPawnMovement = CastChecked<UCameraPawnMovement>(MovementComponent);
-}
-
-void ACameraPawn::SetCameraPitch(float AngleBelowHorizon)
-{
-    FRotator Rotation = GetActorRotation();
-    Rotation.Pitch = -FMath::Clamp(AngleBelowHorizon, CameraMinPitch, CameraMaxPitch);
-    Rotation.Roll = 0.f;
-    SetActorRotation(Rotation);
+    CameraPawnRotation = CreateDefaultSubobject<UCameraRotatingMovement>(TEXT("Camera Rotation Component"));
+    CameraPawnRotation->SetUpdatedComponent(CameraBoom);
+    CameraBoom->AddTickPrerequisiteComponent(CameraPawnMovement);
+    CameraBoom->AddTickPrerequisiteComponent(CameraPawnRotation);
 }
 
 void ACameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -50,35 +51,15 @@ void ACameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
     if (UEnhancedInputComponent* const EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent); IsValid(EnhancedInput))
     {
         EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::AddMovement);
-
-        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &ThisClass::UpdateZoom);
-        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Completed, this, &ThisClass::EndZoom);
-        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Canceled, this, &ThisClass::EndZoom);
+        EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &ThisClass::AddZoom);
 
         EnhancedInput->BindAction(PanMove, ETriggerEvent::Triggered, this, &ThisClass::UpdatePan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Started, this, &ThisClass::BeginPan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Completed, this, &ThisClass::EndPan);
         EnhancedInput->BindAction(PanActivation, ETriggerEvent::Canceled, this, &ThisClass::CancelPan);
 
-        EnhancedInput->BindAction(PitchKeyboard, ETriggerEvent::Triggered, this, &ThisClass::UpdateKeyboardPitch);
-        EnhancedInput->BindAction(PitchActivation, ETriggerEvent::Started, this, &ThisClass::BeginTilt);
-        EnhancedInput->BindAction(PitchActivation, ETriggerEvent::Completed, this, &ThisClass::EndTilt);
-        EnhancedInput->BindAction(PitchActivation, ETriggerEvent::Canceled, this, &ThisClass::EndTilt);
-        EnhancedInput->BindAction(PitchMouse, ETriggerEvent::Triggered, this, &ThisClass::UpdateMousePitch);
+        EnhancedInput->BindAction(RotationAction, ETriggerEvent::Triggered, this, &ThisClass::UpdateRotation);
     }
-}
-
-void ACameraPawn::AddMovement(const FInputActionValue& Input)
-{
-    if (MovementMode != ECameraMovementMode::None)
-    {
-        return;
-    }
-    checkf(Input.GetValueType() == EInputActionValueType::Axis3D, TEXT("Movement should be 3D axis movement"));
-    const FVector MoveVector = Input.Get<FVector>();
-    MoveRight(MoveVector.X);
-    MoveForward(MoveVector.Y);
-    MoveUp_World(MoveVector.Z);
 }
 
 void ACameraPawn::MoveForward(float Value)
@@ -93,15 +74,77 @@ void ACameraPawn::MoveRight(float Value)
     AddMovementInput(HorizontalRotation.GetUnitAxis(EAxis::Y), Value);
 }
 
+void ACameraPawn::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    UpdateVerticalSpeed(DeltaSeconds);
+    UpdateVerticalOffset(DeltaSeconds);
+}
+
+void ACameraPawn::AddMovement(const FInputActionValue& Input)
+{
+    checkf(Input.GetValueType() == EInputActionValueType::Axis3D, TEXT("Movement should be 3D axis movement"));
+    const FVector MoveVector = Input.Get<FVector>();
+    MoveRight(MoveVector.X);
+    MoveForward(MoveVector.Y);
+    MoveUp_World(MoveVector.Z);
+}
+
+void ACameraPawn::UpdateRotation(const FInputActionValue& Input)
+{
+    checkf(Input.GetValueType() == EInputActionValueType::Axis2D, TEXT("Rotation should be 2D axis movement"));
+    const FVector2D RotationVector = Input.Get<FVector2D>();
+    CameraPawnRotation->AddRotationInput({ RotationVector.Y, RotationVector.X, 0.0 });
+}
+
+void ACameraPawn::AddZoom(const FInputActionValue& Input)
+{
+    CameraPawnMovement->BeginDirectMovement();
+    const double CameraHeight = -CameraBoom->GetTargetRotation().Vector().Z * CameraBoom->TargetArmLength;
+    const double HeightScale = CameraHeight / ZoomReferenceHeight;
+    AddMovementInput(FVector::UpVector, Input.Get<float>() * HeightScale * ZoomSensitivity);
+    CameraPawnMovement->EndDirectMovement();
+}
+
 void ACameraPawn::BeginPlay()
 {
     Super::BeginPlay();
     check(CameraMinPitch < CameraMaxPitch);
+    CameraPawnRotation->SetUpdatedComponent(CameraBoom);
+    PanPlane = FPlane(GetActorLocation(), FVector::UpVector);
+}
+
+void ACameraPawn::BeginPan()
+{
+    const APlayerController* PlayerOwner = GetController<APlayerController>();
+    if (!bIsPanning || !IsValid(PlayerOwner))
+    {
+        return;
+    }
+
+    CancelPan();
+    if (PlayerOwner->GetMousePosition(OldScreenPosition.X, OldScreenPosition.Y))
+    {
+        bIsPanning = true;
+        CameraPawnMovement->BeginDirectMovement();
+    }
+}
+
+void ACameraPawn::EndPan()
+{
+    bIsPanning = false;
+    CameraPawnMovement->EndDirectMovement();
+}
+
+void ACameraPawn::CancelPan()
+{
+    bIsPanning = false;
+    MovementComponent->StopMovementImmediately();
 }
 
 void ACameraPawn::UpdatePan(const FInputActionValue& Input)
 {
-    if (!EnumHasAnyFlags(MovementMode, ECameraMovementMode::Panning))
+    if (!bIsPanning)
     {
         BeginPan();
         return;
@@ -117,79 +160,53 @@ void ACameraPawn::UpdatePan(const FInputActionValue& Input)
     }
 }
 
-void ACameraPawn::UpdateKeyboardPitch(const FInputActionValue& Input)
+void ACameraPawn::UpdateVerticalSpeed(float DeltaSeconds)
 {
-    if (MovementMode == ECameraMovementMode::None)
+    const float VerticalInput = CameraPawnMovement->ConsumeVerticalInput();
+    if (FMath::IsNearlyZero(VerticalSpeed) && FMath::IsNearlyZero(VerticalInput))
     {
-        SetCameraPitch(-GetActorRotation().Pitch + Input.Get<float>() * KeyboardPitchSpeed * GetWorld()->GetDeltaSeconds());
-    }
-}
-
-void ACameraPawn::UpdateMousePitch(const FInputActionValue& Input)
-{
-    BeginTilt();
-    SetCameraPitch(-GetActorRotation().Pitch + Input.Get<float>() * MousePitchSensitivity);
-}
-
-void ACameraPawn::UpdateZoom(const FInputActionValue& Input)
-{
-    if (EnumHasAnyFlags(MovementMode, ~ECameraMovementMode::Zoom))
-    {
+        VerticalSpeed = 0.0f;
         return;
     }
-    MovementMode |= ECameraMovementMode::Zoom;
-    CameraPawnMovement->BeginDirectMovement();
-    const double HeightScale = FMath::Max(GetActorLocation().Z, 1.) / FMath::Max(ZoomReferenceHeight, 1.f);
-    CameraPawnMovement->AddInputVector(FVector::UpVector * Input.Get<float>() * ZoomSensitivity * HeightScale);
-}
 
-void ACameraPawn::BeginTilt()
-{
-    if (!EnumHasAnyFlags(MovementMode, ECameraMovementMode::Tilting))
+    if (FMath::IsNearlyZero(VerticalInput))
     {
-        CancelPan();
-        EndZoom();
-        MovementMode |= ECameraMovementMode::Tilting;
+        VerticalSpeed *= FMath::Exp(-DeltaSeconds * 5);
+    }
+    else
+    {
+        VerticalSpeed = VerticalInput * CameraPawnMovement->GetMaxSpeed();
     }
 }
 
-void ACameraPawn::EndTilt()
+void ACameraPawn::UpdateVerticalOffset(float DeltaSeconds)
 {
-    MovementMode &= ~ECameraMovementMode::Tilting;
-}
-
-void ACameraPawn::BeginPan()
-{
-    const APlayerController* PlayerOwner = GetController<APlayerController>();
-    if (MovementMode != ECameraMovementMode::None || !IsValid(PlayerOwner))
+    if (FMath::IsNearlyZero(VerticalSpeed))
     {
         return;
     }
 
-    CancelPan();
-    if (GetPanPlane(PlayerOwner, PanPlane) && PlayerOwner->GetMousePosition(OldScreenPosition.X, OldScreenPosition.Y))
+    FRotator Rotation = CameraBoom->GetTargetRotation();
+    const FVector CurrentOffset = -Rotation.Vector() * CameraBoom->TargetArmLength;
+
+    const double RadiusSqr = CurrentOffset.SizeSquared2D();
+    const double Radius = FMath::Sqrt(RadiusSqr);
+
+    const double DesiredHeight = CurrentOffset.Z + VerticalSpeed * DeltaSeconds;
+    const double DesiredPitch = -FMath::RadiansToDegrees(FMath::Atan2(DesiredHeight, Radius));
+
+    Rotation.Pitch = FMath::Clamp(DesiredPitch, -CameraPawnRotation->GetMaxPitch(), -CameraPawnRotation->GetMinPitch());
+    double Length = FMath::Sqrt(RadiusSqr + DesiredHeight * DesiredHeight);
+
+    if (Rotation.Pitch != DesiredPitch)
     {
-        MovementMode |= ECameraMovementMode::Panning;
-        CameraPawnMovement->BeginDirectMovement();
+        const double BoundaryHeight = -Radius * FMath::Tan(FMath::DegreesToRadians(Rotation.Pitch));
+        const double BoundaryLength = FMath::Sqrt(RadiusSqr + BoundaryHeight * BoundaryHeight);
+        Length = BoundaryLength + (DesiredHeight - BoundaryHeight);
     }
-}
 
-void ACameraPawn::EndPan()
-{
-    MovementMode &= ~ECameraMovementMode::Panning;
-    CameraPawnMovement->EndDirectMovement();
-}
-
-void ACameraPawn::CancelPan()
-{
-    MovementMode &= ~ECameraMovementMode::Panning;
-    MovementComponent->StopMovementImmediately();
-}
-
-void ACameraPawn::EndZoom()
-{
-    MovementMode &= ~ECameraMovementMode::Zoom;
-    CameraPawnMovement->EndDirectMovement();
+    CameraBoom->TargetArmLength = FMath::Clamp(Length, SpringArmMinLength, SpringArmMaxLength);
+    CameraBoom->SetWorldRotation(Rotation);
 }
 
 bool ACameraPawn::ProjectToPanPlane(const FVector2D& ScreenPosition, FVector& WorldPosition) const

@@ -44,11 +44,9 @@ Current technical goals include:
 - Run system
 - Minor AI improvements
 - Building construction system
+- Better camera controls
 
 ## Roadmap
-
-Near-term:
-- Better camera controls
 
 Future:
 - Siege units

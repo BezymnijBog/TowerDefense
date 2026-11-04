@@ -2,12 +2,6 @@
 
 #include "Components/CameraPawnMovement.h"
 
-void UCameraPawnMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    ClampMovementHeight();
-}
-
 void UCameraPawnMovement::BeginDirectMovement()
 {
     StopMovementImmediately();
@@ -22,6 +16,20 @@ void UCameraPawnMovement::EndDirectMovement()
         bDirectMovement = false;
         bEndDirectMovement = false;
     }
+}
+
+float UCameraPawnMovement::ConsumeVerticalInput()
+{
+    const float Temp = VerticalInput;
+    VerticalInput = 0.0f;
+    return Temp;
+}
+
+FVector UCameraPawnMovement::ConsumeInputVector()
+{
+    const FVector Input = Super::ConsumeInputVector();
+    VerticalInput += Input.Z;
+    return { Input.X, Input.Y, 0.0 };
 }
 
 void UCameraPawnMovement::StopMovementImmediately()
@@ -57,26 +65,9 @@ void UCameraPawnMovement::ApplyDirectMovementControlInputToVelocity(float DeltaT
 
 void UCameraPawnMovement::ApplyInertiaMovement(float DeltaTime)
 {
-    Velocity = Velocity.GetClampedToMaxSize(GetMaxSpeed()) * FMath::Exp(-DeltaTime / InertiaDampingTime);
-    if (Velocity.IsNearlyZero(InertiaStopSpeed))
+    if (Velocity *= FMath::Exp(-DeltaTime / InertiaDampingTime); Velocity.IsNearlyZero(InertiaStopSpeed))
     {
         Velocity = FVector::ZeroVector;
     }
     ConsumeInputVector();
-}
-
-void UCameraPawnMovement::ClampMovementHeight()
-{
-    if (!IsValid(UpdatedComponent))
-    {
-        return;
-    }
-
-    if (FVector Location = UpdatedComponent->GetComponentLocation(); !FMath::IsWithin(Location.Z, MinHeight, MaxHeight))
-    {
-        Location.Z = FMath::Clamp(Location.Z, MinHeight, MaxHeight);
-        UpdatedComponent->SetWorldLocation(Location);
-        Velocity.Z = 0.;
-        UpdateComponentVelocity();
-    }
 }

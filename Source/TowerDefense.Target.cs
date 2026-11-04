@@ -12,8 +12,7 @@ public class TowerDefenseTarget : TargetRules
         IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
         ExtraModuleNames.AddRange(new string[]
         {
-            "TowerDefense",
-            "TowerDefenseTests"
+            "TowerDefense"
         });
     }
 }
