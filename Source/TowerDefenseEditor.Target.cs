@@ -14,7 +14,6 @@ public class TowerDefenseEditorTarget : TargetRules
         {
             "TowerDefense",
             "TowerDefenseMeshEditor",
-            "TowerDefenseTests",
             "TowerDefenseUnitEditor"
         });
     }
