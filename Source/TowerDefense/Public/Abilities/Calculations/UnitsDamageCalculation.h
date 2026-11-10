@@ -20,13 +20,14 @@ public:
     virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 
 private:
-    UPROPERTY(EditAnywhere, Category = DamageCalculation, meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0))
-    float BaseDamageDeviation = 0.f;
-
     FGameplayEffectAttributeCaptureDefinition DamageDef;
-    FGameplayEffectAttributeCaptureDefinition CriticalChanceDef;
-    FGameplayEffectAttributeCaptureDefinition ArmorDef;
-    FGameplayEffectAttributeCaptureDefinition BlockChanceDef;
+    FGameplayEffectAttributeCaptureDefinition DexteritySourceDef;
+    FGameplayEffectAttributeCaptureDefinition AttackRelativeSourceDef;
 
-    float GetDeviationModifier() const;
+    FGameplayEffectAttributeCaptureDefinition BodyArmorDef;
+    FGameplayEffectAttributeCaptureDefinition HeadArmorDef;
+    FGameplayEffectAttributeCaptureDefinition DexterityTargetDef;
+    FGameplayEffectAttributeCaptureDefinition AttackRelativeTargetDef;
+    FGameplayEffectAttributeCaptureDefinition BlockRelativeDef;
+    FGameplayEffectAttributeCaptureDefinition DefenseBonusDef;
 };

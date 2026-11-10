@@ -21,5 +21,5 @@ protected:
     TObjectPtr<UProgressBar> ProgressBar;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    float ProgressPercent;
+    float ProgressPercent = 1.0f;
 };

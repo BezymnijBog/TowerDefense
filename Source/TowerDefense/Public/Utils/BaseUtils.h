@@ -75,6 +75,21 @@ void SendGameplayEventToTarget(AActor* Instigator, AActor* Target, FGameplayTag 
 void EndTask(UAbilityTask* Task);
 } // namespace AbilitySystem
 
+namespace RollUtils
+{
+enum ERollResult
+{
+    CriticalFailure,
+    Failure,
+    Success,
+    CriticalSuccess
+};
+
+int32 RollDice(int32 N = 1);
+ERollResult CheckSuccessMargin(int32& Margin, int32 Difficulty = 10);
+bool IsCheckSuccessful(int32 Difficulty = 10);
+} // namespace RollUtils
+
 namespace Utils
 {
 template <std::derived_from<AActor> T>

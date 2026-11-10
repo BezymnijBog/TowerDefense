@@ -22,7 +22,7 @@ protected:
     FVector GridStart = FVector::ZeroVector;
 
     UPROPERTY(EditAnywhere, Category = WorldGrid, meta = (MakeEditWidget))
-    FIntVector2 GridSize = { 100, 100 };
+    FIntVector2 GridSize = { 150, 100 };
 
     UPROPERTY(EditAnywhere, Category = WorldGrid, meta = (MakeEditWidget))
     FVector2D GridStep = { 100., 100. };

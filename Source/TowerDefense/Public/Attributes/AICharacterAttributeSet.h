@@ -13,60 +13,67 @@ class TOWERDEFENSE_API UAICharacterAttributeSet : public UAttributeSet
     GENERATED_BODY()
 
 public:
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, Health);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(Health);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(Health);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, Strength);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, Dexterity);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, Health);
 
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, MaxHealth);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(MaxHealth);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(MaxHealth);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, Damage);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, HitPoints);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, ExtraHitPoints);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, DeathThresholds);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, HeadArmor);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, BodyArmor);
 
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, Damage);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(Damage);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(Damage);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, AttackRelative);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, BlockRelative);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, DefenseBonus);
 
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, CriticalChance);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(CriticalChance);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(CriticalChance);
-
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, Armor);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(Armor);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(Armor);
-
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, BlockChance);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(BlockChance);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(BlockChance);
-
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, Cooldown);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(Cooldown);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(Cooldown);
-
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UAICharacterAttributeSet, Reward);
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(Reward);
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(Reward);
+    ATTRIBUTE_ACCESSORS_BASIC(UAICharacterAttributeSet, Reward);
 
 protected:
+    // Main attributes
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData Health;
+    FGameplayAttributeData Strength = 10.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData MaxHealth;
+    FGameplayAttributeData Dexterity = 10.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData Damage;
+    FGameplayAttributeData Health = 10.f;
+
+    // Secondary attributes
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData Damage = 0.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData CriticalChance;
+    FGameplayAttributeData HitPoints = 10.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData Armor;
+    FGameplayAttributeData ExtraHitPoints = 0.f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes", meta = (ClampMin = "1", ClampMax = "5"))
+    FGameplayAttributeData DeathThresholds = 5.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData BlockChance;
+    FGameplayAttributeData HeadArmor = 2.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData Cooldown;
+    FGameplayAttributeData BodyArmor = 0.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
-    FGameplayAttributeData Reward;
+    FGameplayAttributeData Cooldown = 2.f;
+
+    // Skills
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData AttackRelative = -4.f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData BlockRelative = -4.f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData DefenseBonus = 0.f;
+
+    // Reward after unit's death
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+    FGameplayAttributeData Reward = 0.f;
 };

@@ -9,16 +9,16 @@
 #include "GenericTeamAgentInterface.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Interfaces/DeathInterface.h"
+#include "Utils/AbilityDescription.h"
 #include "TowerDefenseAICharacter.generated.h"
 
+class UUnitAbilitySystemComponent;
 class ATowerDefenseAIController;
 class UAICharacterAttributeSet;
 class UBehaviorTree;
 class UProgressBarWidget;
 class UWayComponent;
 class UWidgetComponent;
-
-struct FDefaultAbilityDescription;
 
 UCLASS()
 class TOWERDEFENSE_API ATowerDefenseAICharacter :
@@ -53,8 +53,6 @@ public:
     FDeathDelegate DeathDelegate;
 
 protected:
-    void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
-
     virtual void BeginPlay() override;
     virtual void PostInitializeComponents() override;
 
@@ -65,16 +63,10 @@ protected:
     TWeakObjectPtr<UProgressBarWidget> HealthWidget;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
-    TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+    TObjectPtr<UUnitAbilitySystemComponent> AbilitySystemComponent;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UWayComponent> WayComponent;
-
-    UPROPERTY(VisibleInstanceOnly, Category = "AICharacter|Abilities")
-    TObjectPtr<const UAICharacterAttributeSet> AttributeSet;
-
-    UPROPERTY(EditDefaultsOnly, Category = "AICharacter|Abilities")
-    TArray<FDefaultAbilityDescription> DefaultAbilities;
 
     UPROPERTY(EditDefaultsOnly, Category = "AICharacter")
     FGenericTeamId TeamId;

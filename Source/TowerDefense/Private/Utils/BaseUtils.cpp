@@ -63,3 +63,48 @@ void EndTask(UAbilityTask* Task)
     }
 }
 } // namespace AbilitySystem
+namespace RollUtils
+{
+int32 RollDice(int32 N)
+{
+    int32 Result = 0;
+    for (int32 I = 0; I < N; ++I)
+    {
+        static constexpr int32 DiceMin = 1;
+        static constexpr int32 DiceMax = 6;
+        Result += FMath::RandRange(DiceMin, DiceMax);
+    }
+    return Result;
+}
+
+ERollResult CheckSuccessMargin(int32& Margin, int32 Difficulty)
+{
+    const int32 RollResult = RollDice(3);
+    Margin = RollResult - Difficulty;
+    if (RollResult == 18 || (RollResult == 17 && Difficulty <= 16) || Margin >= 10)
+    {
+        return CriticalFailure;
+    }
+
+    if (RollResult == 3 || (RollResult == 4 && Difficulty >= 5) || (Margin <= -10 && RollResult <= 6))
+    {
+        return CriticalSuccess;
+    }
+
+    return Margin > 0 ? Failure : Success;
+}
+
+bool IsCheckSuccessful(int32 Difficulty)
+{
+    switch (int32 Margin = 0; CheckSuccessMargin(Margin, Difficulty))
+    {
+        case CriticalSuccess:
+        case Success:
+            return true;
+        case Failure:
+        case CriticalFailure:
+        default:
+            return false;
+    }
+}
+} // namespace RollUtils

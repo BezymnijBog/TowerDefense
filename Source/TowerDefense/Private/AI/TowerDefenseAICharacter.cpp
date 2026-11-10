@@ -4,16 +4,15 @@
 
 #include "Abilities/TowerDefenceTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Algo/AnyOf.h"
 #include "Attributes/AICharacterAttributeSet.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/UnitAbilitySystemComponent.h"
 #include "Components/WayComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfaces/InterfaceFunctionLibrary.h"
 #include "Settings/TowerDefenseWorldSettings.h"
-#include "Utils/AbilityDescription.h"
 #include "Utils/BaseUtils.h"
 #include "Utils/WorldGridFunctionLibrary.h"
 #include "Widgets/ProgressBarWidget.h"
@@ -26,7 +25,7 @@ ATowerDefenseAICharacter::ATowerDefenseAICharacter(const FObjectInitializer& Obj
     WidgetComponent->SetupAttachment(GetMesh());
 
     WayComponent = CreateDefaultSubobject<UWayComponent>(TEXT("WayComponent"));
-    AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+    AbilitySystemComponent = CreateDefaultSubobject<UUnitAbilitySystemComponent>(TEXT("AbilitySystem"));
     GetCapsuleComponent()->SetCollisionResponseToChannel(Collision::UnitHitTarget, ECR_Overlap);
     GetMesh()->SetCollisionResponseToChannel(Collision::UnitHitTarget, ECR_Ignore);
     WidgetComponent->SetCollisionResponseToChannel(Collision::UnitHitTarget, ECR_Ignore);
@@ -150,14 +149,22 @@ bool ATowerDefenseAICharacter::IsDead() const
 
 void ATowerDefenseAICharacter::OnDeath()
 {
+    if (bIsDead)
+    {
+        return;
+    }
+
+    const auto DisableComponent = [](UPrimitiveComponent* Component)
+    {
+        Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Component->SetCollisionProfileName(Collision::NoCollisionProfile);
+        Component->SetCanEverAffectNavigation(false);
+    };
+
     bIsDead = true;
     GiveReward();
-    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    GetMesh()->SetCollisionProfileName(Collision::NoCollisionProfile);
-    GetMesh()->SetCanEverAffectNavigation(false);
-    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    GetCapsuleComponent()->SetCollisionProfileName(Collision::NoCollisionProfile);
-    GetCapsuleComponent()->SetCanEverAffectNavigation(false);
+    DisableComponent(GetMesh());
+    DisableComponent(GetCapsuleComponent());
     GetCharacterMovement()->DisableMovement();
     GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &ThisClass::OnDeathTimerElapsed, DeathDestroyInterval);
     SetCanAffectNavigationGeneration(false, true);
@@ -175,22 +182,11 @@ FDeathDelegate& ATowerDefenseAICharacter::GetDeathDelegate()
     return DeathDelegate;
 }
 
-void ATowerDefenseAICharacter::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
-{
-    if (HealthWidget.IsValid())
-    {
-        HealthWidget->SetPercent(OnAttributeChangeData.NewValue / AttributeSet->GetMaxHealth());
-    }
-
-    if (OnAttributeChangeData.NewValue <= 0.f)
-    {
-        OnDeath();
-    }
-}
-
 void ATowerDefenseAICharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    AbilitySystemComponent->UnitDead.BindUObject(this, &ThisClass::OnDeath);
 
     // Damage classification must persist after the attack montage ends (arrows may still be flying).
     if (AttackPattern == EUnitAttackPattern::Ranged)
@@ -202,22 +198,10 @@ void ATowerDefenseAICharacter::BeginPlay()
         AbilitySystemComponent->AddLooseGameplayTag(Modifier_Damage_TwoHanded);
     }
 
-    AttributeSet = AbilitySystemComponent->GetSet<UAICharacterAttributeSet>();
-    AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHealthAttribute())
-        .AddUObject(this, &ThisClass::OnHealthChanged);
-
-    for (const FDefaultAbilityDescription& AbilityDescription : DefaultAbilities)
-    {
-        if (FGameplayAbilitySpecHandle AbilitySpec = AbilitySystemComponent->GiveAbility(AbilityDescription.ToSpec()); AbilityDescription.bActivateAtStartup)
-        {
-            AbilitySystemComponent->TryActivateAbility(MoveTemp(AbilitySpec));
-        }
-    }
-
     if (HealthWidget = Cast<UProgressBarWidget>(WidgetComponent->GetWidget()); HealthWidget.IsValid())
     {
         HealthWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-        HealthWidget->SetPercent(1.f);
+        AbilitySystemComponent->HitPointPercentChanged.BindUObject(HealthWidget.Get(), &UProgressBarWidget::SetPercent);
     }
 }
 
@@ -229,11 +213,12 @@ void ATowerDefenseAICharacter::OnDeathTimerElapsed()
 
 void ATowerDefenseAICharacter::GiveReward()
 {
+    const float Reward = AbilitySystemComponent->GetSetChecked<UAICharacterAttributeSet>()->GetReward();
     for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
         if (It->IsValid() && FGenericTeamId::GetAttitude(this, It->Get()) == ETeamAttitude::Hostile)
         {
-            AbilitySystem::SendGameplayEventToInstigator(this, It->Get(), Action_Money_Change, AttributeSet->GetReward());
+            AbilitySystem::SendGameplayEventToInstigator(this, It->Get(), Action_Money_Change, Reward);
         }
     }
 }
