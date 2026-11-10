@@ -14,6 +14,7 @@
 #include "Engine/Blueprint.h"
 #include "Engine/DataTable.h"
 #include "Engine/SkeletalMesh.h"
+#include "Equipment/UnitEquipmentAssembly.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Misc/PackageName.h"
@@ -74,18 +75,7 @@ void UUnitEditorModel::ResetAttributes()
         }
         FUnitEditorAttribute& Attribute = Attributes.AddDefaulted_GetRef();
         Attribute.Name = It->GetFName();
-        if (Attribute.Name == TEXT("Health") || Attribute.Name == TEXT("MaxHealth"))
-        {
-            Attribute.BaseValue = 100.f;
-        }
-        else if (Attribute.Name == TEXT("Damage"))
-        {
-            Attribute.BaseValue = 10.f;
-        }
-        else if (Attribute.Name == TEXT("Cooldown"))
-        {
-            Attribute.BaseValue = 1.f;
-        }
+        Attribute.BaseValue = FGameplayAttribute(*It).GetNumericValue(GetDefault<UAICharacterAttributeSet>());
     }
 }
 
@@ -175,6 +165,11 @@ bool UUnitEditorModel::Validate(FText& OutError) const
         OutError = FText::FromString(TEXT("Select a skeletal mesh, animation class and AI controller."));
         return false;
     }
+    const UUnitEquipmentAssembly* Equipment = Cast<UUnitEquipmentAssembly>(SkeletalMesh->GetAssetUserDataOfClass(UUnitEquipmentAssembly::StaticClass()));
+    if (Equipment && !Equipment->Loadout.Validate(OutError))
+    {
+        return false;
+    }
     const UAnimBlueprintGeneratedClass* AnimClass = Cast<UAnimBlueprintGeneratedClass>(AnimationClass.Get());
     if (AnimClass && AnimClass->GetTargetSkeleton() && !AnimClass->GetTargetSkeleton()->IsCompatibleForEditor(SkeletalMesh->GetSkeleton()))
     {
@@ -257,7 +252,8 @@ void UUnitEditorModel::ReadCharacterSettings(ATowerDefenseAICharacter* Unit)
     AttackRange = GetPropertyValue<float>(Unit, TEXT("AttackRange"));
     AttackRadiusInCells = GetPropertyValue<int32>(Unit, TEXT("AttackRadiusInCells"));
     ControllerClass = Unit->AIControllerClass;
-    DefaultAbilities = GetPropertyValue<TArray<FDefaultAbilityDescription>>(Unit, TEXT("DefaultAbilities"));
+    DefaultAbilities = GetPropertyValue<TArray<FDefaultAbilityDescription>>(Unit->GetAbilitySystemComponent(), TEXT("DefaultAbilities"));
+    DefaultTags = GetPropertyValue<FGameplayTagContainer>(Unit->GetAbilitySystemComponent(), TEXT("DefaultTags"));
     SkeletalMesh = Unit->GetMesh()->GetSkeletalMeshAsset();
     AnimationClass = Unit->GetMesh()->GetAnimClass();
     MeshTransform = Unit->GetMesh()->GetRelativeTransform();
@@ -276,7 +272,7 @@ void UUnitEditorModel::ReadAttributeTable(const UDataTable* Table)
     for (FUnitEditorAttribute& Attribute : Attributes)
     {
         const FAttributeMetaData* Row = Table ? Table->FindRow<FAttributeMetaData>(MakeAttributeRowName(Attribute.Name), TEXT("UnitEditor"), false) : nullptr;
-        Attribute.BaseValue = Row ? Row->BaseValue : 0.f;
+        Attribute.BaseValue = Row ? Row->BaseValue : Attribute.BaseValue;
         if (Row)
         {
             Attribute.MinValue = Row->MinValue;
@@ -308,7 +304,8 @@ void UUnitEditorModel::ApplyCharacterSettings(ATowerDefenseAICharacter* Unit) co
     GetPropertyValue<EUnitAttackPattern>(Unit, TEXT("AttackPattern")) = AttackPattern;
     GetPropertyValue<float>(Unit, TEXT("AttackRange")) = AttackRange;
     GetPropertyValue<int32>(Unit, TEXT("AttackRadiusInCells")) = AttackRadiusInCells;
-    GetPropertyValue<TArray<FDefaultAbilityDescription>>(Unit, TEXT("DefaultAbilities")) = DefaultAbilities;
+    GetPropertyValue<TArray<FDefaultAbilityDescription>>(Unit->GetAbilitySystemComponent(), TEXT("DefaultAbilities")) = DefaultAbilities;
+    GetPropertyValue<FGameplayTagContainer>(Unit->GetAbilitySystemComponent(), TEXT("DefaultTags")) = DefaultTags;
     if (FBoolProperty* Stationary = FindFProperty<FBoolProperty>(Unit->GetClass(), TEXT("bOccupiesStationaryGridCells")))
     {
         Stationary->SetPropertyValue_InContainer(Unit, Team == EUnitEditorTeam::Defender);

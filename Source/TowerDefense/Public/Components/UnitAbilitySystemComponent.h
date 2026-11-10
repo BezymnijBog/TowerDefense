@@ -40,7 +40,10 @@ protected:
 private:
     void OnHitPointsChanged(const FOnAttributeChangeData& Data);
     void OnStrengthChanged(const FOnAttributeChangeData& Data);
+    void ApplyEquipment();
 
+    FActiveGameplayEffectHandle EquipmentEffectHandle;
+    bool bInitializingEquipment = false;
     bool bIsDead = false;
     int32 CurrentDeathThreshold = 0;
 };

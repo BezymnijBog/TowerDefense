@@ -16,6 +16,11 @@ void UUnitAbilitySystemComponent::BeginPlay()
     GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHitPointsAttribute()).AddUObject(this, &ThisClass::OnHitPointsChanged);
     GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetStrengthAttribute()).AddUObject(this, &ThisClass::OnStrengthChanged);
 
+    {
+        TGuardValue<bool> InitializationGuard(bInitializingEquipment, true);
+        ApplyEquipment();
+    }
+
     for (const FDefaultAbilityDescription& AbilityDescription : DefaultAbilities)
     {
         if (FGameplayAbilitySpecHandle AbilitySpec = GiveAbility(AbilityDescription.ToSpec()); AbilityDescription.bActivateAtStartup)
@@ -28,12 +33,18 @@ void UUnitAbilitySystemComponent::BeginPlay()
 void UUnitAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetHitPointsAttribute()).RemoveAll(this);
+    GetGameplayAttributeValueChangeDelegate(UAICharacterAttributeSet::GetStrengthAttribute()).RemoveAll(this);
+    if (EquipmentEffectHandle.IsValid())
+    {
+        RemoveActiveGameplayEffect(EquipmentEffectHandle);
+        EquipmentEffectHandle.Invalidate();
+    }
     Super::EndPlay(EndPlayReason);
 }
 
 void UUnitAbilitySystemComponent::OnHitPointsChanged(const FOnAttributeChangeData& Data)
 {
-    if (bIsDead || !IsValid(AttributeSet))
+    if (bIsDead || bInitializingEquipment || !IsValid(AttributeSet))
     {
         return;
     }
@@ -94,11 +105,16 @@ void UUnitAbilitySystemComponent::OnHitPointsChanged(const FOnAttributeChangeDat
 
 void UUnitAbilitySystemComponent::OnStrengthChanged(const FOnAttributeChangeData& Data)
 {
+    if (!IsValid(AttributeSet))
+    {
+        return;
+    }
     FOnAttributeChangeData HitPointsChangeData;
     HitPointsChangeData.Attribute = UAICharacterAttributeSet::GetHitPointsAttribute();
     HitPointsChangeData.NewValue = AttributeSet->GetHitPoints();
     HitPointsChangeData.OldValue = HitPointsChangeData.NewValue;
     OnHitPointsChanged(HitPointsChangeData);
 
-    SetNumericAttributeBase(UAICharacterAttributeSet::GetDamageAttribute(), Data.NewValue - Data.OldValue + AttributeSet->GetDamage());
+    const FGameplayAttribute DamageAttribute = UAICharacterAttributeSet::GetDamageAttribute();
+    SetNumericAttributeBase(DamageAttribute, Data.NewValue - Data.OldValue + GetNumericAttributeBase(DamageAttribute));
 }

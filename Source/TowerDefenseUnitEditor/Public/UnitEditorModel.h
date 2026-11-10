@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
+#include "GameplayTagContainer.h"
 #include "Interfaces/AttackerInterface.h"
 #include "Utils/AbilityDescription.h"
 #include "UnitEditorModel.generated.h"
@@ -99,7 +100,9 @@ public:
     UPROPERTY(EditAnywhere, Category = "03 Unit", meta = (AllowAbstract = "false"))
     TSubclassOf<AAIController> ControllerClass;
 
-    UPROPERTY(EditAnywhere, Category = "04 Visuals")
+    UPROPERTY(EditAnywhere,
+              Category = "04 Visuals",
+              meta = (ToolTip = "Meshes built with equipment definitions carry their equipment bonuses and tags into the game."))
     TObjectPtr<USkeletalMesh> SkeletalMesh;
 
     UPROPERTY(EditAnywhere, Category = "04 Visuals", meta = (AllowAbstract = "false"))
@@ -108,11 +111,19 @@ public:
     UPROPERTY(EditAnywhere, Category = "04 Visuals")
     FTransform MeshTransform;
 
-    UPROPERTY(EditAnywhere, EditFixedSize, Category = "05 Attributes", meta = (TitleProperty = "Name", EditFixedOrder))
+    UPROPERTY(EditAnywhere,
+              EditFixedSize,
+              Category = "05 Attributes",
+              meta = (TitleProperty = "Name",
+                      EditFixedOrder,
+                      ToolTip = "Base unit attributes, before equipment bonuses. Do not include armor or weapon bonuses here."))
     TArray<FUnitEditorAttribute> Attributes;
 
     UPROPERTY(EditAnywhere, Category = "06 Abilities", meta = (TitleProperty = "Ability"))
     TArray<FDefaultAbilityDescription> DefaultAbilities;
+
+    UPROPERTY(EditAnywhere, Category = "06 Abilities", meta = (ToolTip = "Innate tags. Equipment tags are granted separately by the equipped items."))
+    FGameplayTagContainer DefaultTags;
 
     UPROPERTY(EditAnywhere, Category = "07 Shooting", meta = (EditCondition = "AttackPattern == EUnitAttackPattern::Ranged"))
     TSubclassOf<AProjectile> ProjectileClass;

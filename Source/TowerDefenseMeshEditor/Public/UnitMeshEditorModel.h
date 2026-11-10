@@ -28,4 +28,7 @@ public:
 
     UFUNCTION()
     TArray<FString> GetAttachmentNames() const;
+
+private:
+    bool ResolveParts(FUnitMeshParts& OutParts, FText& OutError) const;
 };

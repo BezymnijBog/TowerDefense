@@ -5,7 +5,7 @@ public class TowerDefenseMeshEditor : ModuleRules
     public TowerDefenseMeshEditor(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine" });
+        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "TowerDefense" });
         PrivateDependencyModuleNames.AddRange(new[]
         {
             "UnrealEd",

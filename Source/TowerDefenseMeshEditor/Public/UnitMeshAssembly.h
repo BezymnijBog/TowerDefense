@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/AssetUserData.h"
+#include "Equipment/UnitEquipmentDefinition.h"
 #include "UnitMeshAssembly.generated.h"
 
 class USkeletalMesh;
@@ -29,6 +30,10 @@ USTRUCT()
 struct TOWERDEFENSEMESHEDITOR_API FUnitMeshParts
 {
     GENERATED_BODY()
+
+    // Selected item definitions override the corresponding raw visual parts below.
+    UPROPERTY(EditAnywhere, Category = "Parts", meta = (ShowOnlyInnerProperties))
+    FUnitEquipmentLoadout Equipment;
 
     UPROPERTY(EditAnywhere, Category = "Parts")
     TObjectPtr<USkeletalMesh> Body;

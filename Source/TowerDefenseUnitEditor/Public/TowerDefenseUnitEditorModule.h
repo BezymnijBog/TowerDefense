@@ -13,5 +13,6 @@ public:
 
 private:
     TSharedRef<SDockTab> SpawnTab(const FSpawnTabArgs& Args);
+    TSharedRef<SDockTab> SpawnEquipmentTab(const FSpawnTabArgs& Args);
     void RegisterMenus();
 };
