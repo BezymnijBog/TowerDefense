@@ -191,7 +191,7 @@ void ATowerDefenseAICharacter::BeginPlay()
     // Damage classification must persist after the attack montage ends (arrows may still be flying).
     if (AttackPattern == EUnitAttackPattern::Ranged)
     {
-        AbilitySystemComponent->AddLooseGameplayTag(Modifier_Damage_Pojectile);
+        AbilitySystemComponent->AddLooseGameplayTag(Weapon_Projectile);
     }
     else if (AttackPattern == EUnitAttackPattern::TwoHanded)
     {

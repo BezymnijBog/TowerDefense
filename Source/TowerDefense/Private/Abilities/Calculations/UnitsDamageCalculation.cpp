@@ -72,7 +72,7 @@ float UUnitsDamageCalculation::CalculateBaseMagnitude_Implementation(const FGame
     };
 
     //const bool bTwoHandedAttack = Parameters.SourceTags && Parameters.SourceTags->HasTag(Modifier_Damage_TwoHanded);
-    //const bool bProjectileAttack = Parameters.SourceTags && Parameters.SourceTags->HasTag(Modifier_Damage_Pojectile);
+    //const bool bProjectileAttack = Parameters.SourceTags && Parameters.SourceTags->HasTag(Weapon_Projectile);
 
     const int32 SourceDexterity = FMath::FloorToInt(GetAttributeMagnitudeWithDefault(DexteritySourceDef, 0.f));
     const int32 SourceSkillRel = FMath::FloorToInt(GetAttributeMagnitudeWithDefault(AttackRelativeSourceDef, -4.f));
@@ -96,7 +96,7 @@ float UUnitsDamageCalculation::CalculateBaseMagnitude_Implementation(const FGame
     const int32 TargetDefenseBonus = FMath::FloorToInt(GetAttributeMagnitudeWithDefault(DefenseBonusDef, 0.f));
     const int32 ParryDifficulty = DefenseFromSkill(TargetDexterity + TargetSkillRel) + TargetDefenseBonus;
     int32 DefenseDifficulty = ParryDifficulty;
-    if (Parameters.TargetTags && Parameters.TargetTags->HasTag(Modifier_Damage_Shield))
+    if (Parameters.TargetTags && Parameters.TargetTags->HasTag(Weapon_Shield))
     {
         const int32 BlockSkillRel = FMath::FloorToInt(GetAttributeMagnitudeWithDefault(BlockRelativeDef, -4.f));
         const int32 BlockDifficulty = DefenseFromSkill(TargetDexterity + BlockSkillRel) + TargetDefenseBonus;
